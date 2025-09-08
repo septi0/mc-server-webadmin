@@ -1,0 +1,7 @@
+__app_name__ = "Mc-Server-Webadmin"
+__package_name__ = "mc-server-webadmin"
+__description__ = "A lightweight web interface and process manager for running Minecraft servers (Vanilla or Forge) in Docker, with support for world creation, version switching, and start/stop controls."
+__author__ = "Septimiu Ujica"
+__author_email__ = "hellp@septi.ro"
+__author_url__ = "https://www.septi.ro"
+__license__ = "GPLv3"

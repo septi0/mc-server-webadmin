@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}{% if self.title() %}{{ self.title() }}{% else %}Dashboard{% endif %}{% endblock %}
+
+{% block topbar_left %}
+<!-- Show the sidebar button on mobile for this layout -->
+<button id="btnSidebar" class="btn btn-outline-secondary d-lg-none">
+    <i class="bi bi-list"></i>
+</button>
+{% endblock %}
+
+{% block topbar_actions %}
+<div class="dropdown">
+    <button class="btn btn-primary d-flex align-items-center gap-2 dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="bi bi-person-circle me-1"></i>
+        <span class="d-none d-sm-inline">{{ auth_username | capitalize }}</span>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end">
+        <li>
+            <a class="dropdown-item" href="/profile"><i class="bi bi-person me-2"></i>Profile</a>
+        </li>
+        <li>
+            <a class="dropdown-item text-danger" href="/logout"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>
+        </li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="app-wrap">
+    {% block sidebar %}
+    <aside id="sidebar" class="sidebar bg-body">
+        <div class="mb-4">
+            <div class="text-muted small mb-2">SERVER</div>
+            <nav class="nav flex-column gap-1">
+                <a class="nav-link d-flex align-items-center gap-2 px-2 {% if active=='dashboard' %}active{% endif %}" href="/dashboard">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+                <a class="nav-link d-flex align-items-center gap-2 px-2 {% if active=='settings' %}active{% endif %}" href="/settings">
+                    <i class="bi bi-gear"></i> Settings
+                </a>
+                <a class="nav-link d-flex align-items-center gap-2 px-2 {% if active=='terminal' %}active{% endif %}" href="/terminal">
+                    <i class="bi bi-terminal"></i> Terminal
+                </a>
+                <a class="nav-link d-flex align-items-center gap-2 px-2 {% if active=='logs' %}active{% endif %}" href="/logs">
+                    <i class="bi bi-file-earmark-text"></i> Logs
+                </a>
+            </nav>
+        </div>
+        {% if auth_role == 'admin' %}
+        <div class="mb-4">
+            <div class="text-muted small mb-2">ADMIN</div>
+            <nav class="nav flex-column gap-1">
+                <a class="nav-link d-flex align-items-center gap-2 px-2 {% if active=='users' %}active{% endif %}" href="/users">
+                    <i class="bi bi-people"></i> Users
+                </a>
+            </nav>
+        </div>
+        {% endif %}
+    </aside>
+    <!-- Mobile backdrop -->
+    <div id="backdrop" class="backdrop"></div>
+    {% endblock %}
+
+    <main class="content position-relative" id="progressive-app">
+        <div class="loading-overlay" v-if="!loaded">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+        <div class="container-fluid p-3 p-lg-4">
+            {% block content %}{% endblock %}
+        </div>
+        <div id="app-notifications">
+            <div class="toast align-items-center border-0 fade show" :class="n.class" role="alert" aria-live="assertive" aria-atomic="true" v-for="n in notifications" v-cloak>
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <span v-text="n.message"></span>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/luxon@^3/build/global/luxon.min.js"></script>
+<script src="/static/js/app.js?v={{ build_version }}"></script>
+<script src="/static/js/modules/api.js?v={{ build_version }}"></script>
+<script src="/static/js/modules/ws.js?v={{ build_version }}"></script>
+<script src="/static/js/modules/notify.js?v={{ build_version }}"></script>
+<script src="/static/js/modules/confirm.js?v={{ build_version }}"></script>
+{% endblock %}

@@ -1,0 +1,144 @@
+{% extends "layout.html" %}
+{% set active = 'users' %}
+{% block title %}Users{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-3">Users</h2>
+<p class="text-muted mb-3">Create, edit, and delete users</p>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-start">
+        <span class="fw-semibold"><i class="bi bi-people me-2"></i>Users</span>
+        <button class="btn btn-outline-primary btn-sm" @click="openCreateUserModal">
+            <i class="bi bi-person-plus me-1"></i>Create User
+        </button>
+    </div>
+
+    <div class="card-body p-0">
+        <div class="users-panel">
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item" v-for="u in users" v-cloak>
+                    <div class="row-loading-overlay" v-if="u.pending" v-cloak>
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-start gap-3">
+                        <div>
+                            <div class="fw-semibold">
+                                <span v-text="u.username"></span>
+                                <span class="badge text-bg-success ms-2" v-if="u.current">You</span>
+                            </div>
+                            <div class="text-muted small">
+                                Role: <strong v-text="u.role"></strong><br>
+                                Created: <strong v-text="$formatLocalDate(u.created_at)"></strong>
+                            </div>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2 user-item-actions">
+                            <button class="btn btn-sm btn-outline-secondary" :disabled="u.current" @click="openUpdateUserModal(u)">
+                                <i class="bi bi-gear"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" :disabled="u.current" @click="deleteUser(u)">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+            <div class="text-muted text-center m-3" v-if="users !== null && users.length === 0" v-cloak>
+                No users created
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create User Modal -->
+<div class="modal fade" ref="create_user_modal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="#" autocomplete="off" @submit.prevent="createUser">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createUserModalLabel">
+                        <i class="bi bi-person-plus me-2"></i>Create User
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="c_username" class="form-label">Username</label>
+                        <input id="c_username" type="text" class="form-control" required autocomplete="off" v-model="create_user.username">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="c_role" class="form-label">Role</label>
+                        <select id="c_role" class="form-select" v-model="create_user.role">
+                            {% for r in roles %}
+                            <option value="{{ r }}">{{ r }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="c_password" class="form-label">Password</label>
+                        <input id="c_password" type="password" class="form-control" required autocomplete="new-password" minlength="6" v-model="create_user.password">
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary"><i class="bi bi-check2-circle me-1"></i>Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Update User Modal -->
+<div class="modal fade" ref="update_user_modal" tabindex="-1" aria-labelledby="updateUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="#" autocomplete="off" @submit.prevent="updateUser">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="updateUserModalLabel"><i class="bi bi-gear me-2"></i>Update User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text" class="form-control" autocomplete="off" v-model="update_user.username" disabled>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="m_role" class="form-label">Role</label>
+                        <select id="m_role" class="form-select" v-model="update_user.role">
+                            {% for r in roles %}
+                            <option value="{{ r }}">{{ r }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="m_password" class="form-label">Password</label>
+                        <input id="m_password" type="password" class="form-control" autocomplete="new-password" v-model="update_user.password" minlength="6">
+                        <div class="form-text">Leave blank to keep the current password</div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                    <button class="btn btn-primary"><i class="bi bi-save me-1"></i>Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="/static/js/pages/users.js?v={{ build_version }}"></script>
+{% endblock %}

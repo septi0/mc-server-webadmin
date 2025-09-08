@@ -1,0 +1,14 @@
+pyyaml==6.0.2
+pydantic==2.11.7
+pydantic-settings==2.10.1
+aiohttp==3.12.15
+aiohttp_jinja2==1.6
+aiohttp_session==2.12.1
+aiohttp_security==0.5.0
+tortoise-orm==0.25.1
+bcrypt==4.3.0
+aerich[toml]==0.9.1
+user-agents==2.2.0
+httpx==0.28.1
+aiofiles==24.1.0
+packaging==25.0

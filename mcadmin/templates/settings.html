@@ -1,0 +1,265 @@
+{% extends "layout.html" %}
+{% set active = 'settings' %}
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-3">Settings</h2>
+<p class="text-muted mb-3">Manage lifecycle, worlds, and player options</p>
+
+<!-- Header toolbar: start/stop/restart -->
+<div class="card mb-3">
+    <div class="card-header d-flex align-items-center gap-2">
+        <span class="fw-semibold"><i class="bi bi-hdd-network me-2"></i>Server status</span>
+        <span v-text-ng="server_status || '-'" class="text-capitalize badge text-bg-secondary">-</span>
+    </div>
+    <div class="card-body d-flex flex-wrap gap-2">
+        <button class="btn btn-success" @click="startServer" :disabled="updating_server_status || server_status != 'stopped' || activating_world || updating_global_properties">
+            <div class="spinner-border spinner-border-sm me-1" v-if="updating_server_status === 'start'" v-cloak></div>
+            <i class="bi bi-play-fill me-1" v-else></i>
+            Start
+        </button>
+        <button class="btn btn-danger" @click="stopServer" :disabled="updating_server_status || server_status != 'running' || activating_world || updating_global_properties">
+            <div class="spinner-border spinner-border-sm me-1" v-if="updating_server_status === 'stop'" v-cloak></div>
+            <i class="bi bi-stop-fill me-1" v-else></i>
+            Stop
+        </button>
+        <button class="btn btn-warning" @click="restartServer" :disabled="updating_server_status || (server_status != 'running' && server_status != 'stopped') || activating_world || updating_global_properties">
+            <div class="spinner-border spinner-border-sm me-1" v-if="updating_server_status === 'restart'" v-cloak></div>
+            <i class="bi bi-arrow-repeat me-1" v-else></i>
+            Restart
+        </button>
+    </div>
+</div>
+
+<div class="row g-3">
+    <!-- Worlds list -->
+    <div class="col-12 col-lg-6">
+        <div class="card equal-col-card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-semibold"><i class="bi bi-globe2 me-2"></i>Worlds</span>
+                <button class="btn btn-outline-primary btn-sm" @click="openCreateWorldModal">
+                    <i class="bi bi-plus-lg me-1"></i>Create
+                </button>
+            </div>
+
+            <div class="card-body p-0">
+                <div class="worlds-panel">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item" v-for="w in worlds" v-cloak>
+                            <div class="row-loading-overlay" v-if="w.pending" v-cloak>
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-start gap-3">
+                                <div>
+                                    <div class="fw-semibold">
+                                        <span v-text="w.name"></span>
+                                        <span class="badge text-bg-success ms-2" v-if="w.active">Active</span>
+                                    </div>
+                                    <div class="text-muted small">
+                                        Version: <strong v-text="w.server_version"></strong>
+                                    </div>
+                                </div>
+                                <div class="d-flex flex-wrap gap-2 world-item-actions">
+                                    <!-- Set Active -->
+                                    <button class="btn btn-sm btn-outline-primary" :disabled="w.active || activating_world || updating_server_status || updating_global_properties" @click="activateWorld(w)">
+                                        <i class="bi bi-rocket-takeoff"></i>
+                                    </button>
+
+                                    <!-- Manage -->
+                                    <button class="btn btn-sm btn-outline-secondary" :disabled="activating_world || updating_server_status || updating_global_properties" @click="openUpdateWorldModal(w)">
+                                        <i class="bi bi-gear"></i>
+                                    </button>
+
+                                    <!-- Delete -->
+                                    <button class="btn btn-sm btn-outline-danger" @click="deleteWorld(w)">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                    <div class="text-muted text-center m-3" v-if="worlds !== null && worlds.length === 0" v-cloak>
+                        No worlds created
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Properties -->
+    <div class="col-12 col-lg-6">
+        <div class="card equal-col-card h-100">
+            <div class="card-header">
+                <span class="fw-semibold"><i class="bi bi-controller me-2"></i>Global Properties</span>
+            </div>
+            <div class="card-body">
+                <form action="#" class="row g-3" @submit.prevent="updateGlobalProperties">
+                    <div class="col-12 col-sm-6">
+                        <label class="form-label" for="difficulty">Difficulty</label>
+                        <select class="form-select" id="difficulty" v-model="global_properties.difficulty">
+                            <option value="peaceful">Peaceful</option>
+                            <option value="easy">Easy</option>
+                            <option value="normal">Normal</option>
+                            <option value="hard">Hard</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <label class="form-label" for="gamemode">Default Gamemode</label>
+                        <select class="form-select" id="gamemode" v-model="global_properties.gamemode">
+                            <option value="survival">Survival</option>
+                            <option value="creative">Creative</option>
+                            <option value="adventure">Adventure</option>
+                            <option value="spectator">Spectator</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <label class="form-label" for="max_players">Max Players</label>
+                        <input class="form-control" id="max_players" type="number" min="1" max="200" v-model="global_properties['max-players']">
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <label class="form-label" for="motd">MOTD</label>
+                        <input class="form-control" id="motd" type="text" maxlength="120" placeholder="Welcome to our server!" v-model="global_properties.motd">
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <div class="form-check">
+                            <input class="form-check-input" id="whitelist" type="checkbox" v-model="global_properties['enforce-whitelist']">
+                            <label class="form-check-label" for="whitelist">Enforce whitelist</label>
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <div class="form-check">
+                            <input class="form-check-input" id="allow_flight" type="checkbox" v-model="global_properties['allow-flight']">
+                            <label class="form-check-label" for="allow_flight">Allow flight</label>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <button class="btn btn-outline-primary" :disabled="updating_global_properties || activating_world || updating_server_status">
+                            <div class="spinner-border spinner-border-sm me-1" v-if="updating_global_properties" v-cloak></div>
+                            <i class="bi bi-save me-1" v-else></i>
+                            Save
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create World Modal -->
+<div class="modal fade" ref="create_world_modal" tabindex="-1" aria-labelledby="createWorldModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form action="#" autocomplete="off" @submit.prevent="createWorld">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createWorldModalLabel"><i class="bi bi-magic me-2"></i>Create World</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <div class="mb-2">
+                                <span class="fw-semibold">Server Options</span>
+                            </div>
+
+                            <div class="col-12 mb-3">
+                                <label class="form-label" for="world_name">World Name</label>
+                                <input class="form-control" id="world_name" type="text" placeholder="e.g. MyWorld" v-model="create_world.name" required>
+                            </div>
+
+                            <div class="col-12 mb-3">
+                                <label class="form-label" for="c_server_version">Server Version</label>
+                                <input class="form-control" id="c_server_version" type="text" placeholder="e.g. 1.17" v-model="create_world.server_version" required>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label" for="world_upload">Upload World (ZIP)</label>
+                                <input class="form-control" id="world_upload" type="file" accept=".zip" @change="handleWorldFileUpload($event)">
+                                <div class="form-text">If you upload a ZIP, world options are ignored. We'll import the world as-is.</div>
+                            </div>
+                        </div>
+
+                        <div class="col-12" v-if="!world_file">
+                            <hr class="my-2">
+
+                            <div class="mb-2">
+                                <span class="fw-semibold">World Options</span>
+                            </div>
+
+                            <div class="row g-3" id="world-props">
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label" for="seed">Seed (optional)</label>
+                                    <input class="form-control" id="seed" name="seed" type="text" placeholder="leave empty for random" v-model="create_world.properties['level-seed']">
+                                </div>
+
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label" for="level_type">Level Type</label>
+                                    <select class="form-select" id="level_type" name="level_type" v-model="create_world.properties['level-type']">
+                                        {% for lt in level_types %}
+                                        <option value="{{ lt }}">{{ lt.replace("_", " ").capitalize() }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="col-12">
+                                    <div class="form-check">
+                                        <input class="form-check-input" id="hardcore" name="hardcore" type="checkbox" v-model="create_world.properties.hardcore">
+                                        <label class="form-check-label" for="hardcore">Hardcore mode</label>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary" :disabled="creating_world">
+                        <div class="spinner-border spinner-border-sm me-1" v-if="creating_world" v-cloak></div>
+                        <i class="bi bi-check2-circle me-1" v-else></i>
+                        Create
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Update World Modal -->
+<div class="modal fade" ref="update_world_modal" tabindex="-1" aria-labelledby="updateWorldModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="#" autocomplete="off" @submit.prevent="updateWorld">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="updateWorldModalLabel"><i class="bi bi-gear me-2"></i>Update World</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">World Name</label>
+                        <input type="text" class="form-control" autocomplete="off" v-model="update_world.name" disabled>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="u_world_version">Server Version (Only greater versions)</label>
+                        <input type="text" class="form-control" id="u_world_version" v-model="update_world.server_version" required>
+                        <div class="form-text">Upgrading may change world behavior (things might break)</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                    <button class="btn btn-primary"><i class="bi bi-save me-1"></i>Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="/static/js/pages/settings.js?v={{ build_version }}"></script>
+{% endblock %}

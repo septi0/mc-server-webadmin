@@ -1,0 +1,39 @@
+{% extends "layout_auth.html" %}
+{% block title %}Login{% endblock %}
+
+{% block content %}
+
+<div class="card shadow-sm">
+    <div class="card-body p-4">
+        <div class="text-center mb-3">
+            <i class="bi bi-shield-lock fs-1"></i>
+            <h1 class="h4 mt-2 mb-0">Sign in</h1>
+            <div class="text-muted small">Enter your credentials to continue</div>
+        </div>
+
+        {% if message %}
+        <div class="alert alert-{{ message[0] }}" role="alert">{{ message[1] }}</div>
+        {% endif %}
+
+        <form method="post" action="">
+            <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <input id="username" name="username" type="text" class="form-control" required autofocus value="{{ last_username | default('') }}">
+            </div>
+
+            <div class="mb-2">
+                <label for="password" class="form-label d-flex justify-content-between">
+                    <span>Password</span>
+                </label>
+                <input id="password" name="password" type="password" class="form-control" required>
+            </div>
+
+            <button class="btn btn-primary w-100 mt-3" type="submit">
+                <i class="bi bi-box-arrow-in-right me-1"></i>Sign in
+            </button>
+        </form>
+
+    </div>
+</div>
+
+{% endblock %}

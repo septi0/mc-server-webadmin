@@ -1,0 +1,117 @@
+{% extends "layout.html" %}
+{% set active = 'profile' %}
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-3">Profile</h2>
+<p class="text-muted mb-4">Your account details and password settings</p>
+
+{% if message %}
+<div class="alert alert-{{ message[0] }}" role="alert">{{ message[1] }}</div>
+{% endif %}
+
+<div class="row g-3">
+    <!-- Account / Change Password -->
+    <div class="col-12 col-lg-6">
+        <div class="card equal-col-card h-100">
+            <div class="card-header">
+                <span class="fw-semibold"><i class="bi bi-person me-2"></i>Account</span>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center profile-avatar">
+                        <i class="bi bi-person-fill fs-3"></i>
+                    </div>
+                    <div>
+                        <div class="h5 mb-0">{{ auth_username | capitalize }}</div>
+                        <div>
+                            <span class="badge text-bg-primary">{{ auth_role }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <hr>
+
+                <form action="#" class="row g-3" @submit.prevent="updatePassword">
+
+                    <div class="col-12">
+                        <label class="form-label" for="current_password">Current Password</label>
+                        <input class="form-control" id="current_password" type="password" v-model="password_form.current_password" autocomplete="current-password" required>
+                    </div>
+
+                    <div class="col-12 col-sm-6">
+                        <label class="form-label" for="new_password">New Password</label>
+                        <input class="form-control" id="new_password" type="password" minlength="6" v-model="password_form.new_password" autocomplete="new-password" required>
+                    </div>
+
+                    <div class="col-12 col-sm-6">
+                        <label class="form-label" for="new_password2">Confirm New Password</label>
+                        <input class="form-control" id="new_password2" type="password" minlength="6" v-model="password_form.new_password_confirm" autocomplete="new-password" required>
+                        <div class="form-text text-danger" id="pw_hint"></div>
+                    </div>
+
+                    <div class="col-12">
+                        <button class="btn btn-primary" :disabled="updating_password">
+                            <div class="spinner-border spinner-border-sm me-1" v-if="updating_password" v-cloak></div>
+                            <i class="bi bi-check2-circle me-1" v-else></i>
+                            Update Password
+                        </button>
+                    </div>
+
+                    <div class="col-12 text-muted small">
+                        Password must be at least 6 characters
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sessions -->
+    <div class="col-12 col-lg-6">
+        <div class="card equal-col-card h-100">
+            <div class="card-header">
+                <span class="fw-semibold"><i class="bi bi-shield-lock me-2"></i>Sessions</span>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush sessions-panel">
+                    <li class="list-group-item" v-for="s in sessions" :key="s.id" v-cloak>
+                        <div class="row-loading-overlay" v-if="s.pending" v-cloak>
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-start gap-3">
+                            <div>
+                                <div class="fw-semibold">
+                                    <span v-text="s.device"></span>
+                                    <span class="badge text-bg-success ms-2" v-if="s.current">This device</span>
+                                </div>
+                                <div class="small text-muted">
+                                    IP: <strong v-text="s.ip"></strong><br>
+                                    Created: <strong v-text="$formatLocalDate(s.created_at)"></strong><br>
+                                    Last active: <strong v-text="$formatLocalDate(s.updated_at)"></strong>
+                                </div>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2 session-item-actions">
+                                <button class="btn btn-sm btn-outline-danger" :disabled="s.current" @click="deleteSession(s)">
+                                    <i class="bi bi-x-circle"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+                <div class="text-muted text-center m-3" v-if="sessions !== null && sessions.length === 0" v-cloak>
+                    No active sessions
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="/static/js/pages/profile.js?v={{ build_version }}"></script>
+{% endblock %}

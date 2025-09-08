@@ -1,0 +1,15 @@
+mc_server:
+    java_bin: "java" # (env var: MCADMIN_JAVA_BIN) Path to the Java binary
+    java_min_memory: "1024M" # (env var: MCADMIN_JAVA_MIN_MEMORY) Minimum Java heap size
+    java_max_memory: "1024M" # (env var: MCADMIN_JAVA_MAX_MEMORY) Maximum Java heap size
+    server_additional_args: [] # (env var: MCADMIN_SERVER_ADDITIONAL_ARGS) Additional arguments for the java server
+    server_ip: "0.0.0.0" # (env var: MCADMIN_SERVER_IP) Minecraft server IP address
+    server_port: 25565 # (env var: MCADMIN_SERVER_PORT) Minecraft server port
+    rcon_port: 25575 # (env var: MCADMIN_RCON_PORT) Minecraft server RCON port
+    display_host: "" # (env var: MCADMIN_DISPLAY_HOST) Minecraft server display host (can't provide both ip and host)
+    display_ip: "" # (env var: MCADMIN_DISPLAY_IP) Minecraft server display IP address (can't provide both ip and host)
+    display_port: "" # (env var: MCADMIN_DISPLAY_PORT) Minecraft server display port
+
+web_server:
+    host: "0.0.0.0" # (env var: MCADMIN_WEB_HOST) Web server host
+    port: 8000 # (env var: MCADMIN_WEB_PORT) Web server port

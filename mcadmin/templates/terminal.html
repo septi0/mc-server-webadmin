@@ -1,0 +1,52 @@
+{% extends "layout.html" %}
+{% set active = 'terminal' %}
+{% block title %}Terminal{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/css/xterm.min.css">
+{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-3">Terminal</h2>
+<!-- description for server terminal / console -->
+<p class="text-muted mb-3">Server Console</p>
+
+<div class="row g-3">
+    <!-- Terminal -->
+    <div class="col-12">
+        <div class="card h-100">
+            <div class="server-not-running-overlay" v-if="!server_status || server_status != 'running'" v-cloak>
+                <div class="alert alert-warning mb-0" role="alert" v-if="server_status && server_status != 'running'">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    Server is not running
+                </div>
+            </div>
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="fw-semibold"><i class="bi bi-terminal me-2"></i>Server Console</span>
+                    <span class="badge text-bg-secondary" v-if="!connected">Disconnected</span>
+                    <span class="badge text-bg-success" v-if="connected" v-cloak>Connected</span>
+                </div>
+            </div>
+
+            <div class="card-body p-0">
+                <div>
+                    <!-- terminal viewport -->
+                    <div ref="terminal"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/lib/xterm.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
+<script src="/static/js/pages/terminal.js?v={{ build_version }}"></script>
+{% endblock %}
