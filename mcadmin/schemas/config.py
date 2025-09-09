@@ -8,7 +8,7 @@ class McServerConfigSchema(BaseSettings):
     java_bin: Optional[str] = None
     java_min_memory: str = Field(default="1024M", min_length=1)
     java_max_memory: str = Field(default="1024M", min_length=1)
-    server_additional_args: Optional[list[str]] = None
+    server_additional_args: Optional[list[str]] = []
     server_ip: IPvAnyAddress = ip_address("0.0.0.0")
     server_port: int = Field(default=25565, ge=0, le=65535)
     rcon_port: int = Field(default=25575, ge=0, le=65535)

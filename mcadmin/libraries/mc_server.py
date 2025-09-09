@@ -234,7 +234,7 @@ class McServerRunner:
         server_params = await self._get_server_params()
         cmd = self._gen_start_command(server_params=server_params)
 
-        logger.info(f"Starting MC server")
+        logger.info(f"Starting MC server with java bin '{cmd[0]}'")
         logger.debug(cmd)
 
         self._proc = await asyncio.create_subprocess_exec(

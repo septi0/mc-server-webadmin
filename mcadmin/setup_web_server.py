@@ -1,3 +1,4 @@
+import os
 import aiohttp_jinja2
 import jinja2
 import aiohttp_session
@@ -26,9 +27,11 @@ def _setup_middlewares(app: web.Application) -> None:
 
 
 def _setup_jinja(app: web.Application) -> None:
+    templates_path = os.path.join(os.path.dirname(__file__), "templates")
+    
     env = aiohttp_jinja2.setup(
         app,
-        loader=jinja2.FileSystemLoader("mcadmin/templates"),
+        loader=jinja2.FileSystemLoader(templates_path),
         autoescape=True,
         filters={
             "format_datetime": lambda dt: (dt.strftime("%b %d, %Y · %H:%M %Z") if dt else ""),
