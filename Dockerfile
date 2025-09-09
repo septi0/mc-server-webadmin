@@ -34,9 +34,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates tini \
-    python3 python3-venv \
-    openjdk-8-jre-headless openjdk-17-jre-headless openjdk-21-jre-headless \
-    wget curl unzip tar bash && \
+    python3 \
+    openjdk-8-jre-headless openjdk-17-jre-headless openjdk-21-jre-headless && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
