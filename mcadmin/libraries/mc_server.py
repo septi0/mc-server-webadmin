@@ -79,7 +79,7 @@ class McServerRunner:
         self._events_queue: asyncio.Queue | None = events_queue
 
         self._tasks_queue: asyncio.Queue = asyncio.Queue()
-        self._server_info: dict = self._load_server_info()
+        self._server_stats: dict = self._load_server_stats()
         self._proc = None
         self._proc_wait_task = None
         self._proc_stdout_task = None
@@ -94,11 +94,10 @@ class McServerRunner:
     async def run(self) -> None:
         logger.info("Starting MC server runner")
 
+        # publish initial data
         self._publish_event("stats", self.get_server_stats())
 
-        start = self._server_info.get("started")
-
-        if start:
+        if self._server_stats.get("started"):
             await self._start_server(event="startup")
 
         try:
@@ -128,9 +127,9 @@ class McServerRunner:
         return await asyncio.wait_for(evt.reply, timeout=60)
 
     def get_server_status(self) -> str:
-        if self._server_info.get("started") and self._server_info.get("initialized"):
+        if self._server_stats.get("started") and self._server_stats.get("initialized"):
             return "running"
-        elif self._server_info.get("started") and not self._server_info.get("initialized"):
+        elif self._server_stats.get("started") and not self._server_stats.get("initialized"):
             return "starting"
 
         return "stopped"
@@ -141,15 +140,15 @@ class McServerRunner:
         stats["status"] = self.get_server_status()
 
         if stats["status"] == "stopped":
-            stats["exit_code"] = self._server_info.get("exit_code")
+            stats["exit_code"] = self._server_stats.get("exit_code")
             return stats
 
         elif stats["status"] == "starting":
             return stats
 
-        stats["started_at"] = self._server_info.get("started_at", 0)
-        stats["pid"] = self._server_info.get("pid", 0)
-        stats["players"] = self._server_info.get("players", 0)
+        stats["started_at"] = self._server_stats.get("started_at", 0)
+        stats["pid"] = self._server_stats.get("pid", 0)
+        stats["players"] = self._server_stats.get("players", 0)
 
         return stats
 
@@ -178,13 +177,14 @@ class McServerRunner:
                     # wait for the task to finish
                     await asyncio.gather(event_task, return_exceptions=True)
 
-                self._server_info["started"] = False
-                self._server_info["started_at"] = None
-                self._server_info["initialized"] = False
-                self._server_info["pid"] = None
-                self._server_info["players"] = 0
-                self._server_info["exit_code"] = rc
-                self._persist_server_info()
+                await self._set_server_stats(
+                    started=False,
+                    started_at=None,
+                    initialized=False,
+                    pid=None,
+                    players=0,
+                    exit_code=rc,
+                )
 
                 logger.error(f"Minecraft server exited unexpectedly (code={rc})")
                 continue
@@ -231,8 +231,8 @@ class McServerRunner:
         if not os.path.exists(jar_path):
             raise McServerRunnerError("server.jar not found")
 
-        server_args = await self._read_server_args()
-        cmd = self._gen_start_command(server_args=server_args)
+        server_params = await self._get_server_params()
+        cmd = self._gen_start_command(server_params=server_params)
 
         logger.info(f"Starting MC server")
         logger.debug(cmd)
@@ -250,14 +250,18 @@ class McServerRunner:
         self._proc_stdout_task = asyncio.create_task(self._proc_stdout_reader(), name="mc_proc_stdout")
 
         if event != "startup":
-            self._server_info["started"] = True
+            started = True
+        else:
+            started = self._server_stats.get("started", False)
 
-        self._server_info["started_at"] = datetime.now(timezone.utc).isoformat()
-        self._server_info["initialized"] = False
-        self._server_info["pid"] = self._proc.pid
-        self._server_info["players"] = 0
-        self._server_info["exit_code"] = None
-        self._persist_server_info()
+        await self._set_server_stats(
+            started=started,
+            started_at=datetime.now(timezone.utc).isoformat(),
+            initialized=False,
+            pid=self._proc.pid,
+            players=0,
+            exit_code=None,
+        )
 
         logger.info(f"MC server started with PID {self._proc.pid}")
 
@@ -287,14 +291,18 @@ class McServerRunner:
             await self._cancel_stdout_reader_task()
 
             if event != "shutdown":
-                self._server_info["started"] = False
+                started = False
+            else:
+                started = self._server_stats.get("started", False)
 
-            self._server_info["started_at"] = None
-            self._server_info["initialized"] = False
-            self._server_info["pid"] = None
-            self._server_info["players"] = 0
-            self._server_info["exit_code"] = rc
-            self._persist_server_info()
+            await self._set_server_stats(
+                started=started,
+                started_at=None,
+                initialized=False,
+                pid=None,
+                players=0,
+                exit_code=rc,
+            )
 
         logger.info(f"Minecraft server stopped with exit code {rc}")
 
@@ -311,35 +319,33 @@ class McServerRunner:
 
             await self._process_server_log(line)
 
-            self._publish_event('logs', line)
+            self._publish_event("logs", line)
 
     async def _process_server_log(self, line: str) -> None:
         logger.debug(f"MC Log: {line}")
 
         if self._log_patterns["initialized"].search(line):
             logger.info(f"MC server ready")
-            self._server_info["initialized"] = True
+            await self._set_server_stats(initialized=True)
 
         # increment player count if a player joins
         elif self._log_patterns["join"].search(line):
             logger.info(f"Player joined the game")
-            self._server_info["players"] = self._server_info.get("players", 0) + 1
+            await self._set_server_stats(players=self._server_stats.get("players", 0) + 1)
 
         # decrement player count if a player leaves or looses connection
         elif self._log_patterns["leave"].search(line):
             logger.info(f"Player left the game")
-            self._server_info["players"] = max(self._server_info.get("players", 0) - 1, 0)
+            await self._set_server_stats(players=max(self._server_stats.get("players", 0) - 1, 0))
 
         # get players count from server stats
         elif match := self._log_patterns["stats"].search(line):
             player_cnt = match.group("n1") or match.group("n2")
             logger.info(f"Player count updated to {player_cnt}")
-            self._server_info["players"] = int(player_cnt)
+            await self._set_server_stats(players=int(player_cnt))
 
         else:
             return
-
-        self._persist_server_info()
 
     async def _cancel_stdout_reader_task(self) -> None:
         if not self._proc_stdout_task or self._proc_stdout_task.done():
@@ -351,15 +357,30 @@ class McServerRunner:
         await asyncio.gather(self._proc_stdout_task, return_exceptions=True)
         self._proc_stdout_task = None
 
-    async def _read_server_args(self) -> list[str]:
-        args_file = os.path.join(self._directory, "server_args.json")
+    async def _get_server_params(self) -> dict:
+        args_file = os.path.join(self._directory, "server_params.json")
 
         if not os.path.exists(args_file):
-            return []
+            return {}
 
         async with aiofiles.open(args_file, "r") as f:
-            contents = await f.read()
-            return json.loads(contents)
+            data_raw = await f.read()
+            return json.loads(data_raw)
+
+    async def _set_server_stats(self, **kwargs) -> None:
+        if not os.path.exists(self._directory):
+            raise McServerRunnerError("Workdir does not exist")
+
+        path = os.path.join(self._directory, "server_stats.json")
+        tmp = path + ".tmp"
+
+        self._server_stats.update(kwargs)
+
+        async with aiofiles.open(tmp, "w", encoding="utf-8") as f:
+            await f.write(json.dumps(self._server_stats))
+        os.replace(tmp, path)
+
+        self._publish_event("stats", self.get_server_stats())
 
     def _publish_event(self, ev_type: str, data: Any) -> None:
         if not self._events_queue:
@@ -375,40 +396,29 @@ class McServerRunner:
                 self._events_queue.task_done()
                 self._events_queue.put_nowait(data)
 
-    def _load_server_info(self) -> dict:
-        path = os.path.join(self._directory, "server_info.json")
+    def _load_server_stats(self) -> dict:
+        path = os.path.join(self._directory, "server_stats.json")
 
         if not os.path.exists(path):
             return {}
-        try:
-            with open(path, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception as e:
-            logger.warning(f"Failed to load server_info.json: {e}; starting fresh")
-            return {}
 
-    def _persist_server_info(self) -> None:
-        if not os.path.exists(self._directory):
-            raise McServerRunnerError("Workdir does not exist")
-
-        path = os.path.join(self._directory, "server_info.json")
-
-        tmp = path + ".tmp"
-        with open(tmp, "w", encoding="utf-8") as f:
-            json.dump(self._server_info, f)
-        os.replace(tmp, path)
-
-        self._publish_event("stats", self.get_server_stats())
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
 
     def _is_running(self) -> bool:
         return bool(self._proc) and (self._proc.returncode is None)
 
-    def _gen_start_command(self, *, server_args: list[str] = []) -> list[str]:
-        java_bin = self._server_config.get("java_bin", "java")
+    def _gen_start_command(self, *, server_params: dict = {}) -> list[str]:
+        if self._server_config.get("java_bin", ""):
+            java_bin = self._server_config["java_bin"]
+        else:
+            java_version = server_params.get("java_version", "")
+            java_bin = f"java-{java_version}" if java_version else "java"
+
         xms = self._server_config.get("java_min_memory", "1024M")
         xmx = self._server_config.get("java_max_memory", "1024M")
 
-        server_args.extend(self._server_config.get("server_additional_args", []))
+        server_args = [*server_params.get("args", []), *(self._server_config.get("server_additional_args", []))]
 
         cmd = [
             java_bin,
@@ -424,13 +434,13 @@ class McServerRunner:
 
 
 class McServerConfigurator:
+    default_server_ip: str = "0.0.0.0"
+    default_server_port: int = 25565
+    default_rcon_port: int = 25575
+
     def __init__(self, directory: str, server_config: dict) -> None:
         self._directory: str = directory
         self._server_config: dict = server_config
-
-        self._server_ip_bind: str = "0.0.0.0"
-        self._server_port_bind: int = 25565
-        self._rcon_port_bind: int = 25575
 
     async def create_world_instance(self, world: str, *, world_archive: BinaryIO | None = None) -> None:
         workdir = self._gen_workdir(world)
@@ -462,8 +472,9 @@ class McServerConfigurator:
         downloader = McServerDownloader(workdir)
         properties_generator = McServerPropertiesGenerator(
             workdir,
-            server_ip=self._server_config.get("server_ip", self._server_ip_bind),
-            server_port=self._server_config.get("server_port", self._server_port_bind),
+            server_ip=self._server_config.get("server_ip", self.default_server_ip),
+            server_port=self._server_config.get("server_port", self.default_server_port),
+            rcon_port=self._server_config.get("rcon_port", self.default_rcon_port),
         )
 
         tasks = [
@@ -482,7 +493,10 @@ class McServerConfigurator:
         ]
 
         (done, pending) = await asyncio.wait(tasks, return_when=asyncio.FIRST_EXCEPTION)
-        server_args = []
+        server_params = {
+            "args": [],
+            "java_version": self._get_recommended_java(server_version),
+        }
 
         for task in pending:
             logger.warning(f"Task {task.get_name()} is still pending. Cancelling it.")
@@ -493,9 +507,9 @@ class McServerConfigurator:
                 raise McServerConfiguratorError(f"Task {task.get_name()} failed with exception: {task.exception()}")
 
             if task.get_name() == "patch_log4j":
-                server_args.extend(task.result())
+                server_params["args"].extend(task.result())
 
-        await self._write_server_args(workdir, server_args)
+        await self._write_server_params(workdir, server_params)
 
         self._link_world_instance_to_current(world)
 
@@ -505,8 +519,9 @@ class McServerConfigurator:
         workdir = self._gen_workdir(world)
         properties_generator = McServerPropertiesGenerator(
             workdir,
-            server_ip=self._server_config.get("server_ip", self._server_ip_bind),
-            server_port=self._server_config.get("server_port", self._server_port_bind),
+            server_ip=self._server_config.get("server_ip", self.default_server_ip),
+            server_port=self._server_config.get("server_port", self.default_server_port),
+            rcon_port=self._server_config.get("rcon_port", self.default_rcon_port),
         )
 
         await properties_generator.generate(properties)
@@ -532,47 +547,18 @@ class McServerConfigurator:
             info["host"] = display_host
             info["ip"] = socket.gethostbyname(info["host"])
 
-        info["ip"] = self._resolve_wildcard_ip(display_ip or info.get("ip") or self._server_config.get("server_ip", self._server_ip_bind))
-        info["port"] = display_port or self._server_config.get("server_port", self._server_port_bind)
+        info["ip"] = self._resolve_wildcard_ip(display_ip or info.get("ip") or self._server_config.get("server_ip", self.default_server_ip))
+        info["port"] = display_port or self._server_config.get("server_port", self.default_server_port)
 
         return info
 
     def get_rcon_connect_info(self) -> dict:
         info = {}
 
-        info["port"] = self._server_config.get("rcon_port", self._rcon_port_bind)
-        info["ip"] = self._resolve_wildcard_ip(self._server_config.get("server_ip", self._server_ip_bind))
+        info["port"] = self._server_config.get("rcon_port", self.default_rcon_port)
+        info["ip"] = self._resolve_wildcard_ip(self._server_config.get("server_ip", self.default_server_ip))
 
         return info
-
-    def _resolve_wildcard_ip(self, ip: str) -> str:
-        if ip not in ("0.0.0.0", ""):
-            return ip
-        
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
-        try:
-            s.connect(("8.8.8.8", 80))
-            ip = s.getsockname()[0]
-        finally:
-            s.close()
-
-        return ip
-
-    def _gen_workdir(self, world: str) -> str:
-        return os.path.join(self._directory, world)
-
-    def _link_world_instance_to_current(self, world: str) -> None:
-        logger.info(f"Linking world instance {world} to 'current'")
-
-        current_link = self._gen_workdir("current")
-        world_instance_path = self._gen_workdir(world)
-
-        if os.path.islink(current_link):
-            os.remove(current_link)
-
-        # symlink world instance to "current"
-        os.symlink(world_instance_path, current_link)
 
     async def _import_world(self, workdir: str, world_archive: BinaryIO) -> None:
         logger.info(f"Extracting existing world data archive")
@@ -647,16 +633,55 @@ class McServerConfigurator:
             response = await client.get(url)
             response.raise_for_status()
 
-            with open(dest, "wb") as f:
-                f.write(response.content)
+            async with aiofiles.open(dest, "wb") as f:
+                await f.write(response.content)
 
-    async def _write_server_args(self, workdir: str, server_args: list[str]) -> None:
-        logger.info(f"Writing server startup arguments")
+    async def _write_server_params(self, workdir: str, data: dict) -> None:
+        logger.info(f"Writing server params")
 
-        args_file = os.path.join(workdir, "server_args.json")
+        info_file = os.path.join(workdir, "server_params.json")
 
-        async with aiofiles.open(args_file, "w") as f:
-            await f.write(json.dumps(server_args))
+        async with aiofiles.open(info_file, "w") as f:
+            await f.write(json.dumps(data))
+
+    def _resolve_wildcard_ip(self, ip: str) -> str:
+        if ip not in ("0.0.0.0", ""):
+            return ip
+
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+        try:
+            s.connect(("8.8.8.8", 80))
+            ip = s.getsockname()[0]
+        finally:
+            s.close()
+
+        return ip
+
+    def _gen_workdir(self, world: str) -> str:
+        return os.path.join(self._directory, world)
+
+    def _link_world_instance_to_current(self, world: str) -> None:
+        logger.info(f"Linking world instance {world} to 'current'")
+
+        current_link = self._gen_workdir("current")
+        world_instance_path = self._gen_workdir(world)
+
+        if os.path.islink(current_link):
+            os.remove(current_link)
+
+        # symlink world instance to "current"
+        os.symlink(world_instance_path, current_link)
+
+    def _get_recommended_java(self, server_version: str) -> int:
+        v = version.parse(server_version)
+
+        if v >= version.parse("1.21"):
+            return 21
+        elif v >= version.parse("1.17"):
+            return 17
+        else:
+            return 8
 
 
 class McServerDownloader:
@@ -681,8 +706,8 @@ class McServerDownloader:
             response = await client.get(url)
             response.raise_for_status()
 
-            with open(os.path.join(self._directory, "server.jar"), "wb") as f:
-                f.write(response.content)
+            async with aiofiles.open(os.path.join(self._directory, "server.jar"), "wb") as f:
+                await f.write(response.content)
 
         logger.info(f"Server jar successfully downloaded")
 
@@ -746,7 +771,7 @@ class McServerPropertiesGenerator:
 
     min_server_version: str = "1.7.10"
 
-    def __init__(self, directory: str, *, server_ip: str = "", server_port: int = 25565, rcon_port: int = 25575) -> None:
+    def __init__(self, directory: str, *, server_ip: str, server_port: int, rcon_port: int) -> None:
         self._directory: str = directory
         self._enforced_properties: dict = {
             "server-port": str(server_port),
@@ -760,7 +785,7 @@ class McServerPropertiesGenerator:
         self.validate_properties(properties)
 
         properties_file = os.path.join(self._directory, "server.properties")
-        
+
         if properties.get("rcon.password"):
             self._enforced_properties["enable-rcon"] = "true"
 

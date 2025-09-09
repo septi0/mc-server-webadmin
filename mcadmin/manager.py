@@ -5,17 +5,16 @@ import signal
 import yaml
 import asyncio
 from aiohttp import web
-from types import SimpleNamespace
 from logging.handlers import TimedRotatingFileHandler
 from tortoise import Tortoise
 from aerich import Command as AerichCommand
 from mcadmin.utils.random import random_password
 from mcadmin.libraries.cleanup_queue import CleanupQueue
-from mcadmin.schemas.config import ConfigSchema
+from mcadmin.libraries.di_container import DiContainer
 from mcadmin.services.users import UsersService
 from mcadmin.services.server import ServerService
-from mcadmin.webapp import setup_webapp
-from mcadmin.di import setup_di
+from mcadmin.setup_web_server import setup_web_server
+from mcadmin.setup_di import setup_di
 from mcadmin.exceptions import (
     McServerWebadminRuntimeError,
     ExitSignal,
@@ -37,12 +36,11 @@ class McServerWebadminManager:
     ) -> None:
         self._init_logger(log_file, log_level)
 
-        self._config: ConfigSchema = ConfigSchema(**self._load_config(file=config_file))
         self._data_directory: str = data_directory if data_directory else self._gen_data_directory()
         self._cleanup: CleanupQueue = CleanupQueue()
-        self._di: SimpleNamespace = SimpleNamespace()
+        self._di: DiContainer = DiContainer()
 
-        setup_di(self._di, config=self._config, data_directory=self._data_directory)
+        setup_di(self._di, config=self._load_config(file=config_file), data_directory=self._data_directory)
 
     def run(self) -> None:
         self._run_main(self._async_run)
@@ -204,6 +202,11 @@ class McServerWebadminManager:
             f.write(pid)
 
         self._cleanup.push('remove_service_pid', os.remove, pid_filepath)
+        
+        # ensure data directory exists
+        if not os.path.exists(self._data_directory):
+            logger.info(f"Creating data directory at '{self._data_directory}'")
+            os.makedirs(self._data_directory)
 
         logger.info("Initializing database")
 
@@ -230,16 +233,14 @@ class McServerWebadminManager:
 
     async def _async_run_webserver(self):
         logger.info("Starting webserver")
-        
-        webapp_config = self._config.web_server
 
-        webapp = web.Application()
+        server = web.Application()
 
-        webapp["di"] = self._di
+        server["di"] = self._di
 
-        setup_webapp(webapp)
+        setup_web_server(server)
 
-        runner = web.AppRunner(webapp, access_log=None)
+        runner = web.AppRunner(server, access_log=None)
 
         await runner.setup()
 
@@ -248,13 +249,13 @@ class McServerWebadminManager:
 
         site = web.TCPSite(
             runner,
-            webapp_config.host,
-            webapp_config.port,
+            self._di.web_server_config.get('ip'),
+            self._di.web_server_config.get('port'),
         )
 
         await site.start()
 
-        logger.info(f"Webserver listening on {webapp_config.host}:{webapp_config.port}")
+        logger.info(f"Webserver listening on {self._di.web_server_config.get('ip')}:{self._di.web_server_config.get('port')}")
 
         while True:
             await asyncio.sleep(3600)
