@@ -116,6 +116,9 @@ class ServerService:
         return await GlobalProperties.get_or_none(key=key)
 
     async def set_properties(self, properties: dict) -> None:
+        for key, value in properties.items():
+            await GlobalProperties.update_or_create(key=key, defaults={"value": value})
+            
         active_world = await Worlds.get_or_none(active=True)
 
         if not active_world:
@@ -128,14 +131,11 @@ class ServerService:
 
         await self._mc_server_configurator.regen_world_properties(
             str(active_world.id),
-            properties={**(active_world.properties or {}), **properties},
+            properties=await self.gen_world_instance_properties(active_world)
         )
 
         if server_status == "running":
             await self.start_server()
-
-        for key, value in properties.items():
-            await GlobalProperties.update_or_create(key=key, defaults={"value": value})
 
     async def set_property(self, key: str, value: str) -> None:
         await GlobalProperties.update_or_create(key=key, defaults={"value": value})
