@@ -451,7 +451,6 @@ class McServerConfigurator:
         os.makedirs(workdir)
 
         await self._accept_eula(workdir)
-        await self._link_common_files(workdir)
 
         if world_archive:
             await self._import_world(workdir, world_archive)
@@ -510,7 +509,8 @@ class McServerConfigurator:
                 server_params["args"].extend(task.result())
 
         await self._write_server_params(workdir, server_params)
-
+        await self._link_common_files(workdir)
+        
         self._link_world_instance_to_current(world)
 
         logger.info(f"World instance {world} activated successfully")
@@ -588,6 +588,9 @@ class McServerConfigurator:
             if not os.path.exists(src):
                 async with aiofiles.open(src, "w") as f:
                     await f.write("[]")
+                    
+            if os.path.islink(dst) or os.path.exists(dst):
+                os.remove(dst)
 
             os.symlink(src, dst)
             logger.info(f"Linked {src} to {dst}")
@@ -667,7 +670,7 @@ class McServerConfigurator:
         current_link = self._gen_workdir("current")
         world_instance_path = self._gen_workdir(world)
 
-        if os.path.islink(current_link):
+        if os.path.islink(current_link) or os.path.exists(current_link):
             os.remove(current_link)
 
         # symlink world instance to "current"
