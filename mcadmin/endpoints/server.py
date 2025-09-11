@@ -9,22 +9,22 @@ from mcadmin.services.server import ServerService
 from mcadmin.schemas.worlds import CreateWorldSchema, UpdateWorldSchema
 from mcadmin.libraries.queue_dispatcher import QueueDispatcher
 
-routes = web.RouteTableDef()
+server_routes = web.RouteTableDef()
 logger = logging.getLogger(__name__)
 
 
-@routes.get("/")
+@server_routes.get("/")
 async def root_endpoint(request):
     return web.HTTPFound("/dashboard")
 
 
-@routes.get("/dashboard")
+@server_routes.get("/dashboard")
 @aiohttp_jinja2.template("dashboard.html")
 async def dashboard_get_endpoint(request):
     return {}
 
 
-@routes.get("/settings")
+@server_routes.get("/settings")
 @aiohttp_jinja2.template("settings.html")
 async def settings_get_endpoint(request):
     server_service: ServerService = get_di(request).server_service
@@ -36,7 +36,7 @@ async def settings_get_endpoint(request):
     return data
 
 
-@routes.get("/api/server/status")
+@server_routes.get("/api/server/status")
 async def status_get_handler(request):
     server_service: ServerService = get_di(request).server_service
 
@@ -49,7 +49,7 @@ async def status_get_handler(request):
     return web.json_response(reply)
 
 
-@routes.get("/api/server/info")
+@server_routes.get("/api/server/info")
 async def info_get_handler(request):
     server_service: ServerService = get_di(request).server_service
 
@@ -57,7 +57,7 @@ async def info_get_handler(request):
     return web.json_response(info)
 
 
-@routes.post("/api/server/start")
+@server_routes.post("/api/server/start")
 async def start_post_handler(request):
     server_service: ServerService = get_di(request).server_service
 
@@ -71,7 +71,7 @@ async def start_post_handler(request):
     return web.json_response({"status": "ok", "message": "Server started successfully"})
 
 
-@routes.post("/api/server/stop")
+@server_routes.post("/api/server/stop")
 async def stop_post_handler(request):
     server_service: ServerService = get_di(request).server_service
 
@@ -85,7 +85,7 @@ async def stop_post_handler(request):
     return web.json_response({"status": "ok", "message": "Server stopped successfully"})
 
 
-@routes.post("/api/server/restart")
+@server_routes.post("/api/server/restart")
 async def restart_post_handler(request):
     server_service: ServerService = get_di(request).server_service
 
@@ -99,7 +99,7 @@ async def restart_post_handler(request):
     return web.json_response({"status": "ok", "message": "Server restarted successfully"})
 
 
-@routes.get("/api/server/worlds")
+@server_routes.get("/api/server/worlds")
 async def worlds_get_handler(request):
     server_service: ServerService = get_di(request).server_service
     worlds = await server_service.list_world_instances()
@@ -125,7 +125,7 @@ async def worlds_get_handler(request):
     return web.json_response(worlds_list)
 
 
-@routes.get("/api/server/active-world")
+@server_routes.get("/api/server/active-world")
 async def active_world_get_handler(request):
     server_service: ServerService = get_di(request).server_service
 
@@ -146,7 +146,7 @@ async def active_world_get_handler(request):
     return web.json_response(active_world_dict)
 
 
-@routes.post("/api/server/world-create")
+@server_routes.post("/api/server/world-create")
 @validate_request_schema(CreateWorldSchema)
 async def world_create_handler(request):
     server_service: ServerService = get_di(request).server_service
@@ -181,7 +181,7 @@ async def world_create_handler(request):
     return web.json_response({"status": "success", "message": "World created successfully"})
 
 
-@routes.post("/api/server/world-activate")
+@server_routes.post("/api/server/world-activate")
 async def world_activate_handler(request):
     server_service: ServerService = get_di(request).server_service
     post_data = await request.post()
@@ -208,7 +208,7 @@ async def world_activate_handler(request):
     return web.json_response({"status": "success", "message": "World activated successfully"})
 
 
-@routes.post("/api/server/world-update")
+@server_routes.post("/api/server/world-update")
 @validate_request_schema(UpdateWorldSchema)
 async def world_update_handler(request):
     server_service: ServerService = get_di(request).server_service
@@ -233,7 +233,7 @@ async def world_update_handler(request):
     return web.json_response({"status": "success", "message": "World updated successfully"})
 
 
-@routes.post("/api/server/world-delete")
+@server_routes.post("/api/server/world-delete")
 async def world_delete_handler(request):
     server_service: ServerService = get_di(request).server_service
     post_data = await request.post()
@@ -257,7 +257,7 @@ async def world_delete_handler(request):
     return web.json_response({"status": "success", "message": "World deleted successfully"})
 
 
-@routes.get("/api/server/global-properties")
+@server_routes.get("/api/server/global-properties")
 async def global_properties_handler(request):
     server_service: ServerService = get_di(request).server_service
     global_properties = await server_service.get_properties()
@@ -283,7 +283,7 @@ async def global_properties_handler(request):
     return web.json_response(global_properties_dict)
 
 
-@routes.post("/api/server/global-properties")
+@server_routes.post("/api/server/global-properties")
 async def global_properties_update_handler(request):
     server_service: ServerService = get_di(request).server_service
     post_data = await request.post()
@@ -304,7 +304,7 @@ async def global_properties_update_handler(request):
 
     return web.json_response({"status": "success", "message": "Global properties updated successfully"})
 
-@routes.get("/ws/stats")
+@server_routes.get("/ws/stats")
 async def websocket_server_stats(request: web.Request) -> web.WebSocketResponse:
     ev_dispatcher: QueueDispatcher = get_di(request).mc_server_ev_dispatcher
     ws = web.WebSocketResponse(heartbeat=30, compress=True)

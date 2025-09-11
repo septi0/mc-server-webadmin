@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, model_validator, IPvAnyAddress
+from pydantic import BaseModel, Field, model_validator, IPvAnyAddress, IPvAnyNetwork
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
 from ipaddress import ip_address
@@ -18,18 +18,27 @@ class McServerConfigSchema(BaseSettings):
 
     model_config = SettingsConfigDict(env_prefix="MCADMIN_")
 
-    @model_validator(mode="after")
-    def check_ip_or_host_exclusive(self):
-        if self.display_ip and self.display_host:
-            raise ValueError("Cannot set both display_ip and display_host")
-        return self
+    @model_validator(mode="before")
+    def parse_additional_args(cls, values):
+        additional_args = values.get("server_additional_args")
+        if isinstance(additional_args, str):
+            values["server_additional_args"] = [arg.strip() for arg in additional_args.split(",") if arg.strip()]
+        return values
 
 
 class WebServerConfigSchema(BaseSettings):
     ip: IPvAnyAddress = ip_address("0.0.0.0")
     port: int = Field(default=8000, ge=0, le=65535)
+    trusted_proxies: Optional[list[IPvAnyAddress | IPvAnyNetwork]] = []
 
     model_config = SettingsConfigDict(env_prefix="MCADMIN_WEB_")
+
+    @model_validator(mode="before")
+    def parse_trusted_proxies(cls, values):
+        trusted_proxies = values.get("trusted_proxies")
+        if isinstance(trusted_proxies, str):
+            values["trusted_proxies"] = [ip.strip() for ip in trusted_proxies.split(",") if ip.strip()]
+        return values
 
 
 class ConfigSchema(BaseModel):

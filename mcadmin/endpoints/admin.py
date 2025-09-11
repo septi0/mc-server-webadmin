@@ -5,11 +5,11 @@ from mcadmin.utils.web import require_roles, get_di, validate_request_schema
 from mcadmin.services.users import UsersService
 from mcadmin.schemas.users import CreateUserSchema, UpdateUserSchema
 
-routes = web.RouteTableDef()
+admin_routes = web.RouteTableDef()
 logger = logging.getLogger(__name__)
 
 
-@routes.get("/users")
+@admin_routes.get("/users")
 @require_roles(["admin"])
 @aiohttp_jinja2.template("users.html")
 async def users_get_endpoint(request):
@@ -18,7 +18,7 @@ async def users_get_endpoint(request):
     return data
 
 
-@routes.get("/api/admin/users")
+@admin_routes.get("/api/admin/users")
 @require_roles(["admin"])
 async def admin_users_get_endpoint(request):
     users_service: UsersService = get_di(request).users_service
@@ -45,7 +45,7 @@ async def admin_users_get_endpoint(request):
     return web.json_response(users_list)
 
 
-@routes.post("/api/admin/user-create")
+@admin_routes.post("/api/admin/user-create")
 @require_roles(["admin"])
 @validate_request_schema(CreateUserSchema)
 async def admin_user_create_endpoint(request):
@@ -67,7 +67,7 @@ async def admin_user_create_endpoint(request):
     return web.json_response({"status": "success", "message": "User created successfully"})
 
 
-@routes.post("/api/admin/user-update")
+@admin_routes.post("/api/admin/user-update")
 @require_roles(["admin"])
 @validate_request_schema(UpdateUserSchema)
 async def admin_user_update_endpoint(request):
@@ -99,7 +99,7 @@ async def admin_user_update_endpoint(request):
     return web.json_response({"status": "success", "message": "User updated successfully"})
 
 
-@routes.post("/api/admin/user-delete")
+@admin_routes.post("/api/admin/user-delete")
 @require_roles(["admin"])
 async def admin_user_delete_endpoint(request):
     users_service: UsersService = get_di(request).users_service

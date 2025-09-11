@@ -7,18 +7,18 @@ from mcadmin.services.users import UsersService
 from mcadmin.services.sessions import SessionsService
 from mcadmin.schemas.users import UpdatePasswordSchema
 
-routes = web.RouteTableDef()
+user_routes = web.RouteTableDef()
 logger = logging.getLogger(__name__)
 
 
-@routes.get("/profile")
-@routes.post("/profile")
+@user_routes.get("/profile")
+@user_routes.post("/profile")
 @aiohttp_jinja2.template("profile.html")
 async def profile_get_endpoint(request):
     return {}
 
 
-@routes.get("/api/profile/sessions")
+@user_routes.get("/api/profile/sessions")
 async def profile_sessions_get_endpoint(request):
     sessions_service: SessionsService = get_di(request).sessions_service
 
@@ -45,7 +45,7 @@ async def profile_sessions_get_endpoint(request):
     return web.json_response(user_sessions_list)
 
 
-@routes.post("/api/profile/session-delete")
+@user_routes.post("/api/profile/session-delete")
 async def profile_sessions_delete_endpoint(request):
     sessions_service: SessionsService = get_di(request).sessions_service
 
@@ -69,7 +69,7 @@ async def profile_sessions_delete_endpoint(request):
     return web.json_response({"status": "success", "message": "Session deleted successfully"})
 
 
-@routes.post("/api/profile/password-update")
+@user_routes.post("/api/profile/password-update")
 @validate_request_schema(UpdatePasswordSchema)
 async def profile_password_update_endpoint(request):
     users_service: UsersService = get_di(request).users_service

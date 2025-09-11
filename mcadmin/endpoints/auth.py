@@ -6,11 +6,11 @@ from mcadmin.utils.url import sanitize_url_path
 from mcadmin.utils.web import get_di
 from mcadmin.services.users import UsersService
 
-routes = web.RouteTableDef()
+auth_routes = web.RouteTableDef()
 logger = logging.getLogger(__name__)
 
-@routes.get("/login")
-@routes.post("/login")
+@auth_routes.get("/login")
+@auth_routes.post("/login")
 @aiohttp_jinja2.template("login.html")
 async def login_endpoint(request):
     users_service: UsersService = get_di(request).users_service
@@ -37,21 +37,26 @@ async def login_endpoint(request):
         session["username"] = user.username
         session["role"] = user.role
 
-        logger.info(f"User '{username}' logged in")
+        logger.info(f"New login for user '{username}' (ip: {request['real_ip']})")
         raise web.HTTPFound(next_url if next_url else "/dashboard")
 
-    logger.warning(f"Failed login attempt for user '{username}'")
+    logger.warning(f"Failed login attempt for user '{username}' (ip: {request['real_ip']})")
     return {
         "message": ("danger", "Invalid credentials"),
         "last_username": username,
     }
 
 
-@routes.get("/logout")
+@auth_routes.get("/logout")
 async def logout_endpoint(request):
     session = await get_session(request)
+    username = session.get("auth_username")
+
+    if not username:
+        raise web.HTTPFound("/login")
+
     session.invalidate()
 
-    logger.info(f"User '{session.get('username')}' logged out")
+    logger.info(f"User '{username}' logged out")
 
     raise web.HTTPFound("/login")

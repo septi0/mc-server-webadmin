@@ -545,7 +545,7 @@ class McServerConfigurator:
 
         if display_host:
             info["host"] = display_host
-            info["ip"] = socket.gethostbyname(info["host"])
+            info["ip"] = display_ip or socket.gethostbyname(info["host"])
 
         info["ip"] = self._resolve_wildcard_ip(display_ip or info.get("ip") or self._server_config.get("server_ip", self.default_server_ip))
         info["port"] = display_port or self._server_config.get("server_port", self.default_server_port)

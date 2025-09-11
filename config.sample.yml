@@ -2,14 +2,15 @@ mc_server:
     java_bin: "java" # (env var equivalent: MCADMIN_JAVA_BIN - Not applicable in container) Path to the Java binary
     java_min_memory: "1024M" # (env var equivalent: MCADMIN_JAVA_MIN_MEMORY) Minimum Java heap size
     java_max_memory: "1024M" # (env var equivalent: MCADMIN_JAVA_MAX_MEMORY) Maximum Java heap size
-    server_additional_args: [] # (env var equivalent: MCADMIN_SERVER_ADDITIONAL_ARGS) Additional arguments for the java server
+    server_additional_args: "" # (env var equivalent: MCADMIN_SERVER_ADDITIONAL_ARGS) Additional arguments for the java server (comma-separated)
     server_ip: "0.0.0.0" # (env var equivalent: MCADMIN_SERVER_IP - Not applicable in container) Minecraft server IP address
     server_port: 25565 # (env var equivalent: MCADMIN_SERVER_PORT - Not applicable in container) Minecraft server port
     rcon_port: 25575 # (env var equivalent: MCADMIN_RCON_PORT - Not applicable in container) Minecraft server RCON port
-    display_host: "" # (env var equivalent: MCADMIN_DISPLAY_HOST) Minecraft server display host (can't provide both ip and host)
-    display_ip: "" # (env var equivalent: MCADMIN_DISPLAY_IP) Minecraft server display IP address (can't provide both ip and host)
+    display_host: "" # (env var equivalent: MCADMIN_DISPLAY_HOST) Minecraft server display host
+    display_ip: "" # (env var equivalent: MCADMIN_DISPLAY_IP) Minecraft server display IP address (resolved from display_host if empty)
     display_port: "" # (env var equivalent: MCADMIN_DISPLAY_PORT) Minecraft server display port
 
 web_server:
     ip: "0.0.0.0" # (env var equivalent: MCADMIN_WEB_IP - Not applicable in container) Web server IP address
     port: 8000 # (env var equivalent: MCADMIN_WEB_PORT - Not applicable in container) Web server port
+    trusted_proxies: "" # (env var equivalent: MCADMIN_WEB_TRUSTED_PROXIES) List of trusted proxy IP addresses (comma-separated)

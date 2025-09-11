@@ -46,7 +46,7 @@ class SqliteTortoiseStorage(AbstractStorage):
             return Session(None, data=None, new=True, max_age=self.max_age)
 
         # match ip
-        if self.match_ip and row.ip != request.remote:  # type: ignore
+        if self.match_ip and row.ip != self._get_ip(request):  # type: ignore
             await row.delete()
             return Session(None, data=None, new=True, max_age=self.max_age)
 
@@ -77,7 +77,7 @@ class SqliteTortoiseStorage(AbstractStorage):
             await self._sess_model.create(
                 token=token,
                 user_id=sess_data.get("user_id"),
-                ip=request.remote,
+                ip=self._get_ip(request),
                 user_agent=request.headers.get("User-Agent", ""),
                 device=self._ua_to_device(request.headers.get("User-Agent", "")),
                 data=data_str,
@@ -106,3 +106,6 @@ class SqliteTortoiseStorage(AbstractStorage):
         device_type = "PC" if ua.is_pc else ("Mobile" if ua.is_mobile else "Tablet" if ua.is_tablet else "Bot" if ua.is_bot else "Other")
 
         return f"{browser} on {os} ({device_type})"
+
+    def _get_ip(self, request: web.Request) -> str:
+        return request.get("real_ip", request.remote) or ""

@@ -35,7 +35,7 @@ def setup_di(deps: DiContainer, *, config: dict, data_directory: str = "") -> No
         web_server_config["port"] = getattr(WebServerConfigSchema.model_fields.get("port"), "default")
 
     mc_server_config["server_ip"] = str(mc_server_config["server_ip"])
-    web_server_config["ip"] = str(web_server_config["ip"])
+    mc_server_config["display_ip"] = str(mc_server_config["display_ip"]) if mc_server_config["display_ip"] else None
 
     # data
     deps.mc_server_config = mc_server_config

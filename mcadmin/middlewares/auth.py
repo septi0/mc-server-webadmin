@@ -4,6 +4,8 @@ from datetime import datetime, timezone
 from aiohttp import web
 from aiohttp_session import get_session
 
+__all__ = ["auth_middleware"]
+
 
 @web.middleware
 async def auth_middleware(request, handler):

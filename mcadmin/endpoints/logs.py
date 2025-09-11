@@ -5,17 +5,17 @@ from aiohttp import web
 from mcadmin.utils.web import get_di, drain_queue_into_websocket
 from mcadmin.libraries.queue_dispatcher import QueueDispatcher
 
-routes = web.RouteTableDef()
+logs_routes = web.RouteTableDef()
 logger = logging.getLogger(__name__)
 
 
-@routes.get("/logs")
+@logs_routes.get("/logs")
 @aiohttp_jinja2.template("logs.html")
 async def logs_get_endpoint(request):
     return {}
 
 
-@routes.get("/ws/logs")
+@logs_routes.get("/ws/logs")
 async def websocket_logs(request: web.Request) -> web.WebSocketResponse:
     ev_dispatcher: QueueDispatcher = get_di(request).mc_server_ev_dispatcher
     ws = web.WebSocketResponse(heartbeat=30, compress=True)

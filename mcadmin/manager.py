@@ -249,7 +249,7 @@ class McServerWebadminManager:
 
         site = web.TCPSite(
             runner,
-            self._di.web_server_config.get('ip'),
+            str(self._di.web_server_config.get('ip')),
             self._di.web_server_config.get('port'),
         )
 

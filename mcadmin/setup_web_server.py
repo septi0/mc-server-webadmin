@@ -5,7 +5,7 @@ import aiohttp_session
 from aiohttp import web
 from mcadmin.libraries.aiohttp_sess_sqlite import SqliteTortoiseStorage
 from mcadmin.models.sessions import Sessions
-from mcadmin.middlewares.auth import auth_middleware
+from mcadmin.middlewares import setup as _setup_middlewares
 from mcadmin.endpoints import setup as _setup_endpoints
 from mcadmin.utils.web import shutdown_websockets
 
@@ -22,13 +22,9 @@ def setup_web_server(app: web.Application) -> None:
     _setup_on_shutdown(app)
 
 
-def _setup_middlewares(app: web.Application) -> None:
-    app.middlewares.append(auth_middleware)
-
-
 def _setup_jinja(app: web.Application) -> None:
     templates_path = os.path.join(os.path.dirname(__file__), "templates")
-    
+
     env = aiohttp_jinja2.setup(
         app,
         loader=jinja2.FileSystemLoader(templates_path),

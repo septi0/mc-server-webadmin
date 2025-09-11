@@ -5,17 +5,17 @@ from aiohttp import web
 from mcadmin.utils.web import get_di
 from mcadmin.services.server import ServerService
 
-routes = web.RouteTableDef()
+terminal_routes = web.RouteTableDef()
 logger = logging.getLogger(__name__)
 
 
-@routes.get("/terminal")
+@terminal_routes.get("/terminal")
 @aiohttp_jinja2.template("terminal.html")
 async def terminal_get_endpoint(request):
     return {}
 
 
-@routes.get("/ws/terminal")
+@terminal_routes.get("/ws/terminal")
 async def websocket_terminal(request: web.Request) -> web.WebSocketResponse:
     server_service: ServerService = get_di(request).server_service
     ws = web.WebSocketResponse(heartbeat=30, compress=True)
