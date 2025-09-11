@@ -50,13 +50,12 @@ async def login_endpoint(request):
 @auth_routes.get("/logout")
 async def logout_endpoint(request):
     session = await get_session(request)
-    username = session.get("auth_username")
 
-    if not username:
+    if not request.get("auth_username"):
         raise web.HTTPFound("/login")
 
     session.invalidate()
 
-    logger.info(f"User '{username}' logged out")
+    logger.info(f"User '{request['auth_username']}' logged out")
 
     raise web.HTTPFound("/login")
