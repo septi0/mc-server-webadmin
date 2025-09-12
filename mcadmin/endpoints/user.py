@@ -14,12 +14,12 @@ logger = logging.getLogger(__name__)
 @user_routes.get("/profile")
 @user_routes.post("/profile")
 @aiohttp_jinja2.template("profile.html")
-async def profile_get_endpoint(request):
+async def profile_template(request):
     return {}
 
 
-@user_routes.get("/api/profile/sessions")
-async def profile_sessions_get_endpoint(request):
+@user_routes.get("/api/self/sessions")
+async def user_sessions_get(request):
     sessions_service: SessionsService = get_di(request).sessions_service
 
     session = await get_session(request)
@@ -45,13 +45,11 @@ async def profile_sessions_get_endpoint(request):
     return web.json_response(user_sessions_list)
 
 
-@user_routes.post("/api/profile/session-delete")
-async def profile_sessions_delete_endpoint(request):
+@user_routes.delete("/api/self/sessions/{sess_id}")
+async def user_session_delete(request):
     sessions_service: SessionsService = get_di(request).sessions_service
 
-    post_data = await request.post()
-
-    session_id = post_data.get("session_id")
+    session_id = request.match_info.get("sess_id", "")
     user_id = request["auth_user_id"]
 
     if not session_id:
@@ -69,9 +67,9 @@ async def profile_sessions_delete_endpoint(request):
     return web.json_response({"status": "success", "message": "Session deleted successfully"})
 
 
-@user_routes.post("/api/profile/password-update")
+@user_routes.post("/api/self/update")
 @validate_request_schema(UpdatePasswordSchema)
-async def profile_password_update_endpoint(request):
+async def user_update(request):
     users_service: UsersService = get_di(request).users_service
 
     post_data = await request.post()

@@ -110,49 +110,22 @@ html, body {
     }
 }
 
-.world-item-actions {
+.list-item-actions {
     transition: opacity .15s ease, visibility .15s ease, transform .15s ease;
 }
 
 @media (min-width: 992px) {
-    .world-item-actions {
+    .list-item-actions {
         opacity: 0;
         visibility: hidden;
         transform: translateY(-2px);
     }
 
-    .list-group-item:hover .world-item-actions,
-    .list-group-item:focus-within .world-item-actions {
+    .list-group-item:hover .list-item-actions {
         opacity: 1;
         visibility: visible;
         transform: translateY(0);
-    }
-}
-
-.list-group-item {
-    transition: background-color .12s ease, border-color .12s ease;
-}
-
-.list-group-item:hover {
-    background: var(--bs-secondary-bg);
-}
-
-.user-item-actions {
-    transition: opacity .15s ease, visibility .15s ease, transform .15s ease;
-}
-
-@media (min-width: 992px) {
-    .user-item-actions {
-        opacity: 0;
-        visibility: hidden;
-        transform: translateY(-2px);
-    }
-
-    .list-group-item:hover .user-item-actions,
-    .list-group-item:focus-within .user-item-actions {
-        opacity: 1;
-        visibility: visible;
-        transform: translateY(0);
+        z-index: 100;
     }
 }
 
@@ -167,33 +140,6 @@ html, body {
 .profile-avatar {
     width: 56px;
     height: 56px;
-    background: var(--bs-secondary-bg);
-}
-
-.session-item-actions {
-    transition: opacity .15s ease, visibility .15s ease, transform .15s ease;
-}
-
-@media (min-width: 992px) {
-    .session-item-actions {
-        opacity: 0;
-        visibility: hidden;
-        transform: translateY(-2px);
-    }
-
-    .list-group-item:hover .session-item-actions,
-    .list-group-item:focus-within .session-item-actions {
-        opacity: 1;
-        visibility: visible;
-        transform: translateY(0);
-    }
-}
-
-.list-group-item {
-    transition: background-color .12s ease;
-}
-
-.list-group-item:hover {
     background: var(--bs-secondary-bg);
 }
 
@@ -240,4 +186,8 @@ html, body {
 
 .terminal {
     padding: 10px 6px;
+}
+
+#offcanvasWorldOptions {
+    height: auto;
 }

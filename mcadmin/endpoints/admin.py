@@ -9,18 +9,20 @@ admin_routes = web.RouteTableDef()
 logger = logging.getLogger(__name__)
 
 
-@admin_routes.get("/users")
+@admin_routes.get("/admin/users")
 @require_roles(["admin"])
 @aiohttp_jinja2.template("users.html")
-async def users_get_endpoint(request):
-    data = {"roles": ["admin", "user"]}
+async def users_template(request):
+    data = {}
+    
+    data["roles"] = ["admin", "user"]
 
     return data
 
 
 @admin_routes.get("/api/admin/users")
 @require_roles(["admin"])
-async def admin_users_get_endpoint(request):
+async def admin_users_get(request):
     users_service: UsersService = get_di(request).users_service
 
     users = await users_service.list_users()
@@ -45,10 +47,10 @@ async def admin_users_get_endpoint(request):
     return web.json_response(users_list)
 
 
-@admin_routes.post("/api/admin/user-create")
+@admin_routes.post("/api/admin/users")
 @require_roles(["admin"])
 @validate_request_schema(CreateUserSchema)
-async def admin_user_create_endpoint(request):
+async def admin_user_create(request):
     users_service: UsersService = get_di(request).users_service
 
     post_data = await request.post()
@@ -67,15 +69,15 @@ async def admin_user_create_endpoint(request):
     return web.json_response({"status": "success", "message": "User created successfully"})
 
 
-@admin_routes.post("/api/admin/user-update")
+@admin_routes.post("/api/users/{user_id}")
 @require_roles(["admin"])
 @validate_request_schema(UpdateUserSchema)
-async def admin_user_update_endpoint(request):
+async def admin_user_update(request):
     users_service: UsersService = get_di(request).users_service
 
     post_data = await request.post()
 
-    user_id = post_data.get("id", "")
+    user_id = request.match_info.get("user_id", "")
     password = post_data.get("password", "")
     role = post_data.get("role", "")
 
@@ -99,14 +101,12 @@ async def admin_user_update_endpoint(request):
     return web.json_response({"status": "success", "message": "User updated successfully"})
 
 
-@admin_routes.post("/api/admin/user-delete")
+@admin_routes.delete("/api/admin/users/{user_id}")
 @require_roles(["admin"])
-async def admin_user_delete_endpoint(request):
+async def admin_user_delete(request):
     users_service: UsersService = get_di(request).users_service
 
-    post_data = await request.post()
-
-    user_id = post_data.get("id", "")
+    user_id = request.match_info.get("user_id", "")
 
     if not user_id:
         return web.json_response({"status": "error", "message": "User ID is required"}, status=403)

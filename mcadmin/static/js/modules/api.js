@@ -60,15 +60,15 @@
         },
 
         async getUserSessions() {
-            return this.fetch("profile/sessions");
+            return this.fetch("self/sessions");
         },
 
         async updateUserPassword(data) {
-            return this.fetch("profile/password-update", "POST", data);
+            return this.fetch("self/update", "POST", data);
         },
 
         async deleteUserSession(session_id) {
-            return this.fetch("profile/session-delete", "POST", { session_id: session_id });
+            return this.fetch(`self/sessions/${session_id}`, "DELETE");
         },
 
         async getUsers() {
@@ -76,52 +76,68 @@
         },
 
         async createUser(data) {
-            return this.fetch("admin/user-create", "POST", data);
+            return this.fetch("admin/users", "POST", data);
         },
 
-        async updateUser(data) {
+        async updateUser(user_id, data) {
             const updated_data = { ...data };
             if (!updated_data.password) {
                 delete updated_data.password;
             }
 
-            return this.fetch("admin/user-update", "POST", updated_data);
+            return this.fetch(`admin/users/${user_id}`, "POST", updated_data);
         },
 
         async deleteUser(user_id) {
-            return this.fetch("admin/user-delete", "POST", { id: user_id });
+            return this.fetch(`admin/users/${user_id}`, "DELETE");
         },
 
         async getWorlds() {
-            return this.fetch("server/worlds");
+            return this.fetch("worlds");
         },
 
         async getActiveWorldInfo() {
-            return this.fetch("server/active-world");
+            return this.fetch("worlds/active");
         },
 
         async createWorld(data, file = null) {
-            return this.fetch("server/world-create", "POST", data, file);
+            return this.fetch("worlds", "POST", data, file);
         },
 
         async activateWorld(world_id) {
-            return this.fetch("server/world-activate", "POST", { id: world_id });
+            return this.fetch(`worlds/${world_id}/activate`, "POST");
         },
 
-        async updateWorld(data) {
-            return this.fetch("server/world-update", "POST", data);
+        async updateWorld(world_id, data) {
+            return this.fetch(`worlds/${world_id}`, "POST", data);
         },
 
         async deleteWorld(world_id) {
-            return this.fetch("server/world-delete", "POST", { id: world_id });
+            return this.fetch(`worlds/${world_id}`, "DELETE");
         },
 
         async getGlobalProperties() {
-            return this.fetch("server/global-properties");
+            return this.fetch("global-properties");
         },
 
         async updateGlobalProperties(data) {
-            return this.fetch("server/global-properties", "POST", data);
+            return this.fetch("global-properties", "POST", data);
+        },
+
+        async getWorldBackups(world_id) {
+            return this.fetch(`worlds/${world_id}/backups`);
+        },
+
+        async createWorldBackup(world_id) {
+            return this.fetch(`worlds/${world_id}/backups`, "POST");
+        },
+
+        async restoreWorldBackup(world_id, backup_id) {
+            return this.fetch(`worlds/${world_id}/backups/${backup_id}/restore`, "POST");
+        },
+
+        async deleteWorldBackup(world_id, backup_id) {
+            return this.fetch(`worlds/${world_id}/backups/${backup_id}`, "DELETE");
         },
         
     };

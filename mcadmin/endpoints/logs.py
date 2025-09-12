@@ -11,12 +11,12 @@ logger = logging.getLogger(__name__)
 
 @logs_routes.get("/logs")
 @aiohttp_jinja2.template("logs.html")
-async def logs_get_endpoint(request):
+async def logs_template(request):
     return {}
 
 
 @logs_routes.get("/ws/logs")
-async def websocket_logs(request: web.Request) -> web.WebSocketResponse:
+async def logs_ws(request: web.Request) -> web.WebSocketResponse:
     ev_dispatcher: QueueDispatcher = get_di(request).mc_server_ev_dispatcher
     ws = web.WebSocketResponse(heartbeat=30, compress=True)
 

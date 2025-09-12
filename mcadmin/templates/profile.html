@@ -89,11 +89,11 @@
                                 </div>
                                 <div class="small text-muted">
                                     IP: <strong v-text="s.ip"></strong><br>
-                                    Created: <strong v-text="$formatLocalDate(s.created_at)"></strong><br>
+                                    Created at: <strong v-text="$formatLocalDate(s.created_at)"></strong><br>
                                     Last active: <strong v-text="$formatLocalDate(s.updated_at)"></strong>
                                 </div>
                             </div>
-                            <div class="d-flex flex-wrap gap-2 session-item-actions">
+                            <div class="d-flex flex-wrap gap-2 list-item-actions">
                                 <button class="btn btn-sm btn-outline-danger" :disabled="s.current" @click="deleteSession(s)">
                                     <i class="bi bi-x-circle"></i>
                                 </button>

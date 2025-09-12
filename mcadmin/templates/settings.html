@@ -6,12 +6,18 @@
 
 <h2 class="mb-3">Settings</h2>
 <p class="text-muted">Manage lifecycle, worlds, and player options.</p>
-<p class="text-muted mb-3">Hit the <strong>+ Create</strong> button to create a new world, then from the Worlds list, press the <i class="bi bi-rocket-takeoff"></i> button to activate it.</p>
+
+<div v-if="worlds && worlds.length && !active_world" v-cloak>
+    <span class="text-warning mb-3 d-block">
+        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+        No active world. Please activate a world from the Worlds list by clicking the "<i class="bi bi-rocket-takeoff"></i>Activate" button next to the desired world.
+    </span>
+</div>
 
 <!-- Header toolbar: start/stop/restart -->
 <div class="card mb-3">
     <div class="card-header d-flex align-items-center gap-2">
-        <span class="fw-semibold"><i class="bi bi-hdd-network me-2"></i>Server status</span>
+        <span class="fw-semibold"><i class="bi bi-hdd-network me-2"></i>Server status:</span>
         <span v-text-ng="server_status || '-'" class="text-capitalize badge text-bg-secondary">-</span>
     </div>
     <div class="card-body d-flex flex-wrap gap-2">
@@ -48,7 +54,7 @@
                 <div class="worlds-panel">
                     <ul class="list-group list-group-flush">
                         <li class="list-group-item" v-for="w in worlds" v-cloak>
-                            <div class="row-loading-overlay" v-if="w.pending" v-cloak>
+                            <div class="row-loading-overlay" v-if="w.pending">
                                 <div class="spinner-border text-primary" role="status">
                                     <span class="visually-hidden">Loading...</span>
                                 </div>
@@ -59,31 +65,55 @@
                                         <span v-text="w.name"></span>
                                         <span class="badge text-bg-success ms-2" v-if="w.active">Active</span>
                                     </div>
-                                    <div class="text-muted small">
-                                        Version: <strong v-text="w.server_version"></strong>
-                                    </div>
+                                    <div class="text-muted small">Version: <strong v-text="w.server_version"></strong></div>
                                 </div>
-                                <div class="d-flex flex-wrap gap-2 world-item-actions">
+                                <div class="d-flex flex-wrap gap-2 list-item-actions">
                                     <!-- Set Active -->
                                     <button class="btn btn-sm btn-outline-primary" :disabled="w.active || activating_world || updating_server_status || updating_global_properties" @click="activateWorld(w)">
-                                        <i class="bi bi-rocket-takeoff"></i>
+                                        <i class="bi bi-rocket-takeoff me-1"></i>
+                                        Activate
                                     </button>
 
-                                    <!-- Manage -->
-                                    <button class="btn btn-sm btn-outline-secondary" :disabled="activating_world || updating_server_status || updating_global_properties" @click="openUpdateWorldModal(w)">
-                                        <i class="bi bi-gear"></i>
-                                    </button>
+                                    <div class="dropdown d-none d-lg-block">
+                                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" :disabled="activating_world || updating_server_status || updating_global_properties">
+                                            <i class="bi bi-gear"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li>
+                                                <a class="dropdown-item" href="#" @click="openUpdateWorldModal(w)">
+                                                    <i class="bi bi-pencil-square me-2"></i>
+                                                    Edit
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" :href="`/worlds/${w.id}/backups`">
+                                                    <i class="bi bi-cloud-arrow-up me-2"></i>
+                                                    Backups
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <hr class="dropdown-divider">
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item text-danger" href="#" @click="deleteWorld(w)">
+                                                    <i class="bi bi-trash me-2"></i>
+                                                    Delete
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
 
-                                    <!-- Delete -->
-                                    <button class="btn btn-sm btn-outline-danger" @click="deleteWorld(w)">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
+                                    <div class="dropdown d-block d-lg-none">
+                                        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="offcanvas" data-bs-target="#offcanvasWorldOptions" :disabled="activating_world || updating_server_status || updating_global_properties" @click="setUpdateWorldRef(w)">
+                                            <i class="bi bi-gear"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </li>
                     </ul>
                     <div class="text-muted text-center m-3" v-if="worlds !== null && worlds.length === 0" v-cloak>
-                        No worlds created
+                        No worlds created yet. Click the "<i class="bi bi-plus-lg me-1"></i>Create" button to add one.
                     </div>
                 </div>
             </div>
@@ -146,6 +176,24 @@
                 </form>
             </div>
         </div>
+    </div>
+</div>
+
+<div class="offcanvas offcanvas-bottom" tabindex="-1" id="offcanvasWorldOptions" aria-labelledby="offcanvasWorldOptionsLabel" v-cloak>
+    <div class="offcanvas-body small">
+        <ul class="list-group list-group-flush" v-if="update_world_ref">
+            <li class="list-group-item" @click="openUpdateWorldModal(update_world_ref)" data-bs-dismiss="offcanvas" data-bs-target="#offcanvasWorldOptions">
+                <i class="bi bi-pencil-square me-2"></i>Edit World
+            </li>
+            <li class="list-group-item">
+                <a :href="`/worlds/${update_world_ref.id}/backups`" class="text-decoration-none text-reset d-block">
+                    <i class="bi bi-cloud-arrow-up me-2"></i>World Backups
+                </a>
+            </li>
+            <li class="list-group-item text-danger" @click="deleteWorld(update_world_ref)" data-bs-dismiss="offcanvas" data-bs-target="#offcanvasWorldOptions">
+                <i class="bi bi-trash me-2"></i>Delete World
+            </li>
+        </ul>
     </div>
 </div>
 
@@ -235,7 +283,9 @@
         <div class="modal-content">
             <form action="#" autocomplete="off" @submit.prevent="updateWorld">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="updateWorldModalLabel"><i class="bi bi-gear me-2"></i>Update World</h5>
+                    <h5 class="modal-title" id="updateWorldModalLabel">
+                        <i class="bi bi-gear me-2"></i>Update World
+                    </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">

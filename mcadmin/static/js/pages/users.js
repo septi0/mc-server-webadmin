@@ -85,11 +85,9 @@
 
                     this.update_user_ref.pending = true;
 
-                    const response = await api.updateUser(this.update_user);
+                    const response = await api.updateUser(this.update_user.id, this.update_user);
 
                     notify.success(response.message);
-
-                   
 
                     await this.fetchUsers();
                 } catch (error) {

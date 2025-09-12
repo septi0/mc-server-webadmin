@@ -8,12 +8,11 @@
 <p class="text-muted mb-3">Live server logs</p>
 
 <div class="row g-3">
-    <!-- Live Log Stream -->
     <div class="col-12">
         <div class="card h-100">
             <div class="card-header d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center gap-2">
-                    <span class="fw-semibold"><i class="bi bi-file-earmark-text me-2"></i>Live Logs</span>
+                    <span class="fw-semibold"><i class="bi bi-file-earmark-text me-2"></i>Connection status:</span>
                     <span class="badge text-bg-secondary" v-if="follow_logs && !connected">Disconnected</span>
                     <span class="badge text-bg-success" v-if="follow_logs && connected" v-cloak>Connected</span>
                     <span class="badge text-bg-info" v-if="!follow_logs" v-cloak>Paused</span>
@@ -30,7 +29,6 @@
             </div>
 
             <div class="card-body p-0">
-                <!-- log viewport -->
                 <pre id="log-viewport" class="m-0 p-3" ref="log_view"><span v-for="(line, index) in log_data" :key="index" v-text="line + '\n'"></span></pre>
             </div>
 

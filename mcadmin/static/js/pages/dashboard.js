@@ -17,7 +17,7 @@
         }),
 
         async created() {
-            this.stats_ws = ws.getWebSocket("stats");
+            this.stats_ws = ws.getWebSocket("server/stats");
 
             try {
                 await Promise.all([

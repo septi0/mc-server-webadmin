@@ -20,7 +20,7 @@
 
         async created() {
             this.terminal_ws = ws.getWebSocket("terminal");
-            this.stats_ws = ws.getWebSocket("stats");
+            this.stats_ws = ws.getWebSocket("server/stats");
             this.term = new Terminal({
                 cursorBlink: true,
                 fontSize: 16,

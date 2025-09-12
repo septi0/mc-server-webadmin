@@ -10,11 +10,9 @@
 {% block content %}
 
 <h2 class="mb-3">Terminal</h2>
-<!-- description for server terminal / console -->
 <p class="text-muted mb-3">Server Console</p>
 
 <div class="row g-3">
-    <!-- Terminal -->
     <div class="col-12">
         <div class="card h-100">
             <div class="server-not-running-overlay" v-if="!server_status || server_status != 'running'" v-cloak>
@@ -25,7 +23,7 @@
             </div>
             <div class="card-header d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center gap-2">
-                    <span class="fw-semibold"><i class="bi bi-terminal me-2"></i>Server Console</span>
+                    <span class="fw-semibold"><i class="bi bi-terminal me-2"></i>Connection status:</span>
                     <span class="badge text-bg-secondary" v-if="!connected">Disconnected</span>
                     <span class="badge text-bg-success" v-if="connected" v-cloak>Connected</span>
                 </div>

@@ -31,6 +31,7 @@ setup(
         "mcadmin",
         "mcadmin.endpoints",
         "mcadmin.libraries",
+        "mcadmin.libraries.mc_server",
         "mcadmin.middlewares",
         "mcadmin.models",
         "mcadmin.schemas",

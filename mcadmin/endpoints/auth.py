@@ -12,15 +12,16 @@ logger = logging.getLogger(__name__)
 @auth_routes.get("/login")
 @auth_routes.post("/login")
 @aiohttp_jinja2.template("login.html")
-async def login_endpoint(request):
+async def login_template(request):
     users_service: UsersService = get_di(request).users_service
+    data = {}
 
     if request.get("auth_username"):
         # already logged in
         raise web.HTTPFound("/dashboard")
 
     if request.method == "GET":
-        return {}
+        return data
 
     session = await get_session(request)
     post_data = await request.post()
@@ -41,14 +42,15 @@ async def login_endpoint(request):
         raise web.HTTPFound(next_url if next_url else "/dashboard")
 
     logger.warning(f"Failed login attempt for user '{username}' (ip: {request['real_ip']})")
-    return {
-        "message": ("danger", "Invalid credentials"),
-        "last_username": username,
-    }
+    
+    data["message"] = ("danger", "Invalid credentials")
+    data["last_username"] = username
+    
+    return data
 
 
 @auth_routes.get("/logout")
-async def logout_endpoint(request):
+async def logout(request):
     session = await get_session(request)
 
     if not request.get("auth_username"):

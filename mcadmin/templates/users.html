@@ -32,10 +32,10 @@
                             </div>
                             <div class="text-muted small">
                                 Role: <strong v-text="u.role"></strong><br>
-                                Created: <strong v-text="$formatLocalDate(u.created_at)"></strong>
+                                Created at: <strong v-text="$formatLocalDate(u.created_at)"></strong>
                             </div>
                         </div>
-                        <div class="d-flex flex-wrap gap-2 user-item-actions">
+                        <div class="d-flex flex-wrap gap-2 list-item-actions">
                             <button class="btn btn-sm btn-outline-secondary" :disabled="u.current" @click="openUpdateUserModal(u)">
                                 <i class="bi bi-gear"></i>
                             </button>
@@ -47,7 +47,7 @@
                 </li>
             </ul>
             <div class="text-muted text-center m-3" v-if="users !== null && users.length === 0" v-cloak>
-                No users created
+                No users created yet. Click the "<i class="bi bi-person-plus me-1"></i>Create User" button to add one.
             </div>
         </div>
     </div>

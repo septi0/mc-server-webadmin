@@ -11,6 +11,7 @@
             server_status: null,
             global_properties: {},
             worlds: null,
+            active_world: null,
             create_world: { properties: {} },
             update_world: {},
             update_world_ref: null,
@@ -24,7 +25,7 @@
         }),
 
         async created() {
-            this.stats_ws = ws.getWebSocket("stats");
+            this.stats_ws = ws.getWebSocket("server/stats");
 
             try {
                 await Promise.all([
@@ -127,6 +128,8 @@
 
             async fetchWorlds() {
                 this.worlds = await api.getWorlds();
+
+                this.active_world = this.worlds.find(w => w.active) || null;
             },
 
             async fetchGlobalProperties() {
@@ -170,11 +173,12 @@
 
                     this.update_world_ref.pending = true;
 
-                    const response = await api.updateWorld(this.update_world);
+                    const response = await api.updateWorld(this.update_world.id, this.update_world);
 
                     notify.success(response.message);
 
                     this.update_world_modal.hide();
+                    this.update_world_ref = null;
 
                     await this.fetchWorlds();
                 } catch (error) {
@@ -241,6 +245,10 @@
                 } finally {
                     this.updating_global_properties = false;
                 }
+            },
+
+            setUpdateWorldRef(world) {
+                this.update_world_ref = world;
             }
 
         }
