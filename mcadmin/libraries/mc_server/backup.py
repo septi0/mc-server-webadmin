@@ -28,6 +28,7 @@ class McWorldBackup:
         backup_dir = os.path.join(self._directory, self.backup_location, backup)
 
         if not os.path.exists(backup_dir):
+            logger.info(f"Creating backup directory {backup_dir}")
             os.makedirs(backup_dir)
 
         for d in self.backup_dirs:

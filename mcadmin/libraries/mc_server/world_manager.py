@@ -12,6 +12,7 @@ from typing import BinaryIO
 from .downloader import McServerDownloader
 from .properties_generator import McServerPropertiesGenerator
 from .backup import McWorldBackup
+from .datapack import McWorldDatapack
 
 
 class McWorldManagerError(Exception):
@@ -138,6 +139,8 @@ class McWorldManager:
         mc_backup = McWorldBackup(workdir)
         
         await mc_backup.restore(backup)
+        
+        logger.info(f"World instance {world} restored from backup {backup}")
 
     async def delete_world_instance_backup(self, world: str, backup: str) -> None:
         workdir = self._gen_workdir(world, assert_exists=True)
@@ -145,6 +148,18 @@ class McWorldManager:
         
         await mc_backup.delete_backup(backup)
         
+    async def add_world_instance_datapack(self, world: str, datapack_name: str, *, datapack_archive: BinaryIO) -> None:
+        workdir = self._gen_workdir(world, assert_exists=True)
+        mc_datapack = McWorldDatapack(workdir)
+
+        await mc_datapack.add(datapack_name, datapack_archive=datapack_archive)
+
+    async def delete_world_instance_datapack(self, world: str, datapack_name: str) -> None:
+        workdir = self._gen_workdir(world, assert_exists=True)
+        mc_datapack = McWorldDatapack(workdir)
+
+        await mc_datapack.delete(datapack_name)
+
     def validate_properties(self, properties: dict) -> None:
         McServerPropertiesGenerator.validate_properties(properties)
         

@@ -68,12 +68,12 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="c_username" class="form-label">Username</label>
-                        <input id="c_username" type="text" class="form-control" required autocomplete="off" v-model="create_user.username">
+                        <input id="c_username" type="text" class="form-control" required autocomplete="off" v-model="create_user_form.username">
                     </div>
 
                     <div class="mb-3">
                         <label for="c_role" class="form-label">Role</label>
-                        <select id="c_role" class="form-select" v-model="create_user.role">
+                        <select id="c_role" class="form-select" v-model="create_user_form.role">
                             {% for r in roles %}
                             <option value="{{ r }}">{{ r }}</option>
                             {% endfor %}
@@ -82,7 +82,7 @@
 
                     <div class="mb-3">
                         <label for="c_password" class="form-label">Password</label>
-                        <input id="c_password" type="password" class="form-control" required autocomplete="new-password" minlength="6" v-model="create_user.password">
+                        <input id="c_password" type="password" class="form-control" required autocomplete="new-password" minlength="6" v-model="create_user_form.password">
                     </div>
                 </div>
 
@@ -108,12 +108,12 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Username</label>
-                        <input type="text" class="form-control" autocomplete="off" v-model="update_user.username" disabled>
+                        <input type="text" class="form-control" autocomplete="off" v-model="update_user_form.username" disabled>
                     </div>
 
                     <div class="mb-3">
                         <label for="m_role" class="form-label">Role</label>
-                        <select id="m_role" class="form-select" v-model="update_user.role">
+                        <select id="m_role" class="form-select" v-model="update_user_form.role">
                             {% for r in roles %}
                             <option value="{{ r }}">{{ r }}</option>
                             {% endfor %}
@@ -122,7 +122,7 @@
 
                     <div>
                         <label for="m_password" class="form-label">Password</label>
-                        <input id="m_password" type="password" class="form-control" autocomplete="new-password" v-model="update_user.password" minlength="6">
+                        <input id="m_password" type="password" class="form-control" autocomplete="new-password" v-model="update_user_form.password" minlength="6">
                         <div class="form-text">Leave blank to keep the current password</div>
                     </div>
                 </div>

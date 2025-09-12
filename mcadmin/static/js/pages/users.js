@@ -9,8 +9,8 @@
             users: null,
             create_user_modal: null,
             update_user_modal: null,
-            create_user: {},
-            update_user: {},
+            create_user_form: {},
+            update_user_form: {},
             update_user_ref: null,
             creating_user: false,
         }),
@@ -28,34 +28,9 @@
         async mounted() {
             this.create_user_modal = new Modal(this.$refs.create_user_modal);
             this.update_user_modal = new Modal(this.$refs.update_user_modal);
-
-            this.resetCreateUserModal();
         },
 
         methods: {
-            resetCreateUserModal() {
-                this.create_user = {
-                    role: 'user',
-                };
-            },
-
-            openCreateUserModal() {
-                this.resetCreateUserModal();
-                this.create_user_modal.show();
-            },
-
-            openUpdateUserModal(user) {
-                this.update_user_ref = user;
-                this.update_user = {
-                    id: user.id,
-                    username: user.username,
-                    password: '',
-                    role: user.role,
-                };
-
-                this.update_user_modal.show();
-            },
-
             async fetchUsers() {
                 this.users = await api.getUsers();
             },
@@ -63,12 +38,11 @@
             async createUser() {
                 try {
                     this.creating_user = true;
-                    
-                    const response = await api.createUser(this.create_user);
+
+                    const response = await api.createUser(this.create_user_form);
 
                     notify.success(response.message);
 
-                    this.resetCreateUserModal();
                     this.create_user_modal.hide();
 
                     await this.fetchUsers();
@@ -85,9 +59,10 @@
 
                     this.update_user_ref.pending = true;
 
-                    const response = await api.updateUser(this.update_user.id, this.update_user);
+                    const response = await api.updateUser(this.update_user_form.id, this.update_user_form);
 
                     notify.success(response.message);
+                    this.setUpdateUserRef(null);
 
                     await this.fetchUsers();
                 } catch (error) {
@@ -114,6 +89,34 @@
 
                     notify.error(error.message);
                 }
+            },
+
+            openCreateUserModal() {
+                this.resetCreateUserModal();
+                this.create_user_modal.show();
+            },
+
+            openUpdateUserModal(user) {
+                this.setUpdateUserRef(user);
+
+                this.update_user_form = {
+                    id: user.id,
+                    username: user.username,
+                    password: '',
+                    role: user.role,
+                };
+
+                this.update_user_modal.show();
+            },
+
+            resetCreateUserModal() {
+                this.create_user_form = {
+                    role: 'user',
+                };
+            },
+
+            setUpdateUserRef(user) {
+                this.update_user_ref = user;
             },
 
         }

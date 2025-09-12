@@ -8,8 +8,9 @@ logger = logging.getLogger(__name__)
 
 
 @global_properties_routes.get("/api/global-properties")
-async def global_properties_get(request):
+async def global_properties_get(request: web.Request):
     worlds_service: WorldsService = get_di(request).worlds_service
+
     global_properties = await worlds_service.get_properties()
 
     if not global_properties:
@@ -34,8 +35,9 @@ async def global_properties_get(request):
 
 
 @global_properties_routes.post("/api/global-properties")
-async def global_properties_update(request):
+async def global_properties_update(request: web.Request):
     worlds_service: WorldsService = get_di(request).worlds_service
+
     post_data = await request.post()
 
     properties = {key: value for key, value in post_data.items()}

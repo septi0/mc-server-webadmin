@@ -58,7 +58,7 @@
                 } finally {
                     this.updating_password = false;
                 }
-            }
+            },
 
         }
     });

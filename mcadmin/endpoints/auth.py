@@ -12,12 +12,11 @@ logger = logging.getLogger(__name__)
 @auth_routes.get("/login")
 @auth_routes.post("/login")
 @aiohttp_jinja2.template("login.html")
-async def login_template(request):
+async def login_template(request: web.Request):
     users_service: UsersService = get_di(request).users_service
     data = {}
 
     if request.get("auth_username"):
-        # already logged in
         raise web.HTTPFound("/dashboard")
 
     if request.method == "GET":
@@ -27,8 +26,8 @@ async def login_template(request):
     post_data = await request.post()
     get_data = request.query
 
-    username = post_data.get("username", "")
-    password = post_data.get("password", "")
+    username = str(post_data.get("username", ""))
+    password = str(post_data.get("password", ""))
     next_url = sanitize_url_path(get_data.get("redirect", "/dashboard"))
 
     user = await users_service.check_password(username, password)
@@ -50,7 +49,7 @@ async def login_template(request):
 
 
 @auth_routes.get("/logout")
-async def logout(request):
+async def logout(request: web.Request):
     session = await get_session(request)
 
     if not request.get("auth_username"):

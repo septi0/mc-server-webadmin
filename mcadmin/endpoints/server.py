@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 @server_routes.get("/api/server/status")
-async def status_get(request):
+async def status_get(request: web.Request):
     server_service: ServerService = get_di(request).server_service
 
     try:
@@ -23,7 +23,7 @@ async def status_get(request):
 
 
 @server_routes.get("/api/server/info")
-async def info_get(request):
+async def info_get(request: web.Request):
     server_service: ServerService = get_di(request).server_service
 
     info = server_service.get_server_connect_info()
@@ -31,7 +31,7 @@ async def info_get(request):
 
 
 @server_routes.post("/api/server/start")
-async def start_post(request):
+async def start_post(request: web.Request):
     server_service: ServerService = get_di(request).server_service
 
     try:
@@ -45,7 +45,7 @@ async def start_post(request):
 
 
 @server_routes.post("/api/server/stop")
-async def stop_post(request):
+async def stop_post(request: web.Request):
     server_service: ServerService = get_di(request).server_service
 
     try:
@@ -59,7 +59,7 @@ async def stop_post(request):
 
 
 @server_routes.post("/api/server/restart")
-async def restart_post(request):
+async def restart_post(request: web.Request):
     server_service: ServerService = get_di(request).server_service
 
     try:

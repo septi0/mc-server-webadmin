@@ -27,6 +27,12 @@
             }
         },
 
+        computed: {
+            log_lines_count() {
+                return this.log_data.length;
+            }
+        },
+
         methods: {
             async clearLogs() {
                 this.log_data = [];
@@ -56,12 +62,6 @@
                 }
             },
         },
-
-        computed: {
-            log_lines_count() {
-                return this.log_data.length;
-            }
-        }
     });
 
 })(McServerWebadmin);

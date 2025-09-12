@@ -7,9 +7,10 @@ from mcadmin.services.worlds import WorldsService
 settings_routes = web.RouteTableDef()
 logger = logging.getLogger(__name__)
 
+
 @settings_routes.get("/settings")
 @aiohttp_jinja2.template("settings.html")
-async def settings_template(request):
+async def settings_template(request: web.Request):
     worlds_service: WorldsService = get_di(request).worlds_service
     data = {}
 

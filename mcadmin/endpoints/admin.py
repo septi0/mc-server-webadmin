@@ -1,7 +1,8 @@
 import logging
 import aiohttp_jinja2
 from aiohttp import web
-from mcadmin.utils.web import require_roles, get_di, validate_request_schema
+from mcadmin.utils.web import get_di
+from mcadmin.utils.validate import require_roles, validate_request_schema
 from mcadmin.services.users import UsersService
 from mcadmin.schemas.users import CreateUserSchema, UpdateUserSchema
 
@@ -12,9 +13,9 @@ logger = logging.getLogger(__name__)
 @admin_routes.get("/admin/users")
 @require_roles(["admin"])
 @aiohttp_jinja2.template("users.html")
-async def users_template(request):
+async def users_template(request: web.Request):
     data = {}
-    
+
     data["roles"] = ["admin", "user"]
 
     return data
@@ -22,7 +23,7 @@ async def users_template(request):
 
 @admin_routes.get("/api/admin/users")
 @require_roles(["admin"])
-async def admin_users_get(request):
+async def admin_users_get(request: web.Request):
     users_service: UsersService = get_di(request).users_service
 
     users = await users_service.list_users()
@@ -50,7 +51,7 @@ async def admin_users_get(request):
 @admin_routes.post("/api/admin/users")
 @require_roles(["admin"])
 @validate_request_schema(CreateUserSchema)
-async def admin_user_create(request):
+async def admin_user_create(request: web.Request):
     users_service: UsersService = get_di(request).users_service
 
     post_data = await request.post()
@@ -72,14 +73,14 @@ async def admin_user_create(request):
 @admin_routes.post("/api/users/{user_id}")
 @require_roles(["admin"])
 @validate_request_schema(UpdateUserSchema)
-async def admin_user_update(request):
+async def admin_user_update(request: web.Request):
     users_service: UsersService = get_di(request).users_service
 
     post_data = await request.post()
 
-    user_id = request.match_info.get("user_id", "")
-    password = post_data.get("password", "")
-    role = post_data.get("role", "")
+    user_id = int(request.match_info.get("user_id", 0))
+    password = str(post_data.get("password", ""))
+    role = str(post_data.get("role", ""))
 
     user = await users_service.get_user(id=user_id)
 
@@ -103,13 +104,10 @@ async def admin_user_update(request):
 
 @admin_routes.delete("/api/admin/users/{user_id}")
 @require_roles(["admin"])
-async def admin_user_delete(request):
+async def admin_user_delete(request: web.Request):
     users_service: UsersService = get_di(request).users_service
 
-    user_id = request.match_info.get("user_id", "")
-
-    if not user_id:
-        return web.json_response({"status": "error", "message": "User ID is required"}, status=403)
+    user_id = int(request.match_info.get("user_id", 0))
 
     user = await users_service.get_user(id=user_id)
 

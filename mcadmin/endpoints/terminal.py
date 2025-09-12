@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 @terminal_routes.get("/terminal")
 @aiohttp_jinja2.template("terminal.html")
-async def terminal_template(request):
+async def terminal_template(request: web.Request):
     return {}
 
 

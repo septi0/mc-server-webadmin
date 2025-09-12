@@ -12,10 +12,9 @@
             global_properties: {},
             worlds: null,
             active_world: null,
-            create_world: { properties: {} },
-            update_world: {},
+            create_world_form: { properties: {} },
+            update_world_form: {},
             update_world_ref: null,
-            world_file: null,
             creating_world: false,
             updating_server_status: false,
             updating_global_properties: false,
@@ -44,46 +43,9 @@
         async mounted() {
             this.create_world_modal = new Modal(this.$refs.create_world_modal);
             this.update_world_modal = new Modal(this.$refs.update_world_modal);
-
-            this.resetCreateWorldModal();
         },
 
         methods: {
-            resetCreateWorldModal() {
-                this.world_file = null;
-                this.create_world = {
-                    properties: {
-                        "level-type": "default",
-                    },
-                };
-            },
-
-            openCreateWorldModal() {
-                this.resetCreateWorldModal();
-                this.create_world_modal.show();
-            },
-
-            openUpdateWorldModal(world) {
-                this.update_world_ref = world;
-                this.update_world = {
-                    id: world.id,
-                    name: world.name,
-                    server_version: world.server_version,
-                };
-
-                this.update_world_modal.show();
-            },
-
-            handleWorldFileUpload(e) {
-                if (!e.target.files || e.target.files.length === 0) {
-                    this.world_file = null;
-                    return;
-                }
-
-                this.world_file = e.target.files[0];
-                this.create_world.properties = {}
-            },
-
             async startServer() {
                 try {
                     this.updating_server_status = 'start';
@@ -152,12 +114,11 @@
                 try {
                     this.creating_world = true;
 
-                    const response = await api.createWorld(this.create_world, this.world_file);
+                    const response = await api.createWorld(this.create_world_form);
 
                     notify.success(response.message);
 
                     this.create_world_modal.hide();
-                    this.resetCreateWorldModal();
 
                     await this.fetchWorlds();
                 } catch (error) {
@@ -173,12 +134,12 @@
 
                     this.update_world_ref.pending = true;
 
-                    const response = await api.updateWorld(this.update_world.id, this.update_world);
+                    const response = await api.updateWorld(this.update_world_form.id, this.update_world_form);
 
                     notify.success(response.message);
 
                     this.update_world_modal.hide();
-                    this.update_world_ref = null;
+                    this.setUpdateWorldRef(null);
 
                     await this.fetchWorlds();
                 } catch (error) {
@@ -245,6 +206,43 @@
                 } finally {
                     this.updating_global_properties = false;
                 }
+            },
+
+            openCreateWorldModal() {
+                this.resetCreateWorldModal();
+                this.create_world_modal.show();
+            },
+
+            openUpdateWorldModal(world) {
+                this.setUpdateWorldRef(world);
+
+                this.update_world_form = {
+                    id: world.id,
+                    name: world.name,
+                    server_version: world.server_version,
+                };
+
+                this.update_world_modal.show();
+            },
+
+            resetCreateWorldModal() {
+                this.create_world_form = {
+                    properties: {
+                        "level-type": "default",
+                    },
+                };
+
+                this.$refs.world_file.value = null;
+            },
+
+            handleWorldFileUpload(e) {
+                if (!e.target.files || e.target.files.length === 0) {
+                    this.create_world_form.world_archive = null;
+                    return;
+                }
+
+                this.create_world_form.world_archive = e.target.files[0];
+                this.create_world_form.properties = {}
             },
 
             setUpdateWorldRef(world) {

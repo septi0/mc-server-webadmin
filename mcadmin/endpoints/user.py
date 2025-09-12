@@ -2,7 +2,8 @@ import logging
 import aiohttp_jinja2
 from aiohttp import web
 from aiohttp_session import get_session
-from mcadmin.utils.web import get_di, validate_request_schema
+from mcadmin.utils.web import get_di
+from mcadmin.utils.validate import validate_request_schema
 from mcadmin.services.users import UsersService
 from mcadmin.services.sessions import SessionsService
 from mcadmin.schemas.users import UpdatePasswordSchema
@@ -14,12 +15,12 @@ logger = logging.getLogger(__name__)
 @user_routes.get("/profile")
 @user_routes.post("/profile")
 @aiohttp_jinja2.template("profile.html")
-async def profile_template(request):
+async def profile_template(request: web.Request):
     return {}
 
 
 @user_routes.get("/api/self/sessions")
-async def user_sessions_get(request):
+async def user_sessions_get(request: web.Request):
     sessions_service: SessionsService = get_di(request).sessions_service
 
     session = await get_session(request)
@@ -46,14 +47,16 @@ async def user_sessions_get(request):
 
 
 @user_routes.delete("/api/self/sessions/{sess_id}")
-async def user_session_delete(request):
+async def user_session_delete(request: web.Request):
     sessions_service: SessionsService = get_di(request).sessions_service
 
-    session_id = request.match_info.get("sess_id", "")
+    session_id = int(request.match_info.get("sess_id", 0))
     user_id = request["auth_user_id"]
 
-    if not session_id:
-        return web.json_response({"status": "error", "message": "Invalid session ID"}, status=403)
+    session = await sessions_service.get_user_session(user_id, session_id)
+
+    if not session:
+        return web.json_response({"status": "error", "message": "Session not found"}, status=404)
 
     try:
         await sessions_service.delete_user_session(user_id, session_id)
@@ -69,13 +72,13 @@ async def user_session_delete(request):
 
 @user_routes.post("/api/self/update")
 @validate_request_schema(UpdatePasswordSchema)
-async def user_update(request):
+async def user_update(request: web.Request):
     users_service: UsersService = get_di(request).users_service
 
     post_data = await request.post()
 
-    current_password = post_data.get("current_password", "")
-    new_password = post_data.get("new_password", "")
+    current_password = str(post_data.get("current_password", ""))
+    new_password = str(post_data.get("new_password", ""))
 
     user = await users_service.check_password(request["auth_username"], current_password)
 

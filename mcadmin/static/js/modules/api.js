@@ -1,7 +1,7 @@
 (function (McServerWebadmin) {
 
     McServerWebadmin["api"] = {
-        async fetch(url, request_method = 'GET', data = {}, file = null, headers = {}) {
+        async fetch(url, request_method = 'GET', data = {}, headers = {}) {
             let options = {
                 method: request_method,
                 headers: headers,
@@ -11,15 +11,16 @@
                 const form = new FormData();
 
                 for (let [key, value] of Object.entries(data)) {
-                    if (typeof value === 'object' && value !== null) {
+                    if (typeof value === 'object' && value.constructor == Object && value !== null) {
                         value = JSON.stringify(value);
                     }
 
-                    form.append(key, value);
-                }
-
-                if (file) {
-                    form.append("file", file, file.name);
+                    if (value instanceof File) {
+                        form.append(key, value, value.name);
+                    } else {
+                        console.log(value);
+                        form.append(key, value);
+                    }
                 }
 
                 options.body = form;
@@ -100,8 +101,8 @@
             return this.fetch("worlds/active");
         },
 
-        async createWorld(data, file = null) {
-            return this.fetch("worlds", "POST", data, file);
+        async createWorld(data) {
+            return this.fetch("worlds", "POST", data);
         },
 
         async activateWorld(world_id) {
@@ -138,6 +139,18 @@
 
         async deleteWorldBackup(world_id, backup_id) {
             return this.fetch(`worlds/${world_id}/backups/${backup_id}`, "DELETE");
+        },
+
+        async getWorldDatapacks(world_id) {
+            return this.fetch(`worlds/${world_id}/datapacks`);
+        },
+
+        async addWorldDatapack(world_id, data) {
+            return this.fetch(`worlds/${world_id}/datapacks`, "POST", data);
+        },
+
+        async deleteWorldDatapack(world_id, datapack_id) {
+            return this.fetch(`worlds/${world_id}/datapacks/${datapack_id}`, "DELETE");
         },
         
     };

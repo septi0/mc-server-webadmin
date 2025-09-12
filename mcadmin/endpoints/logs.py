@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 @logs_routes.get("/logs")
 @aiohttp_jinja2.template("logs.html")
-async def logs_template(request):
+async def logs_template(request: web.Request):
     return {}
 
 
@@ -24,7 +24,7 @@ async def logs_ws(request: web.Request) -> web.WebSocketResponse:
 
     request.app["websockets"].add(ws)
 
-    q = ev_dispatcher.subscribe('logs', scrollback=20)
+    q = ev_dispatcher.subscribe("logs", scrollback=20)
     listener_task = asyncio.create_task(drain_queue_into_websocket(q, ws))
 
     try:
