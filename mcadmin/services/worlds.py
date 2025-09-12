@@ -192,7 +192,7 @@ class WorldsService:
         datapack = await WorldDatapacks.create(world_id=world.id, **kwargs)
 
         try:
-            await self._mc_world_manager.add_world_instance_datapack(str(world.id), datapack.name, datapack_archive=datapack_archive)
+            await self._mc_world_manager.add_world_instance_datapack(str(world.id), str(datapack.id), datapack_archive=datapack_archive)
         except Exception:
             await datapack.delete()
             raise
@@ -200,7 +200,7 @@ class WorldsService:
         return datapack
 
     async def delete_world_datapack(self, world: Worlds, datapack: WorldDatapacks) -> None:
-        await self._mc_world_manager.delete_world_instance_datapack(str(world.id), datapack.name)
+        await self._mc_world_manager.delete_world_instance_datapack(str(world.id), str(datapack.id))
         await datapack.delete()
 
     def get_level_types(self) -> list[str]:
