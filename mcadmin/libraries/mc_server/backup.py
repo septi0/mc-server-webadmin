@@ -4,10 +4,6 @@ import asyncio
 import shutil
 
 
-class McWorldBackupError(Exception):
-    pass
-
-
 __all__ = [
     "McWorldBackupError",
     "McWorldBackup",
@@ -16,9 +12,14 @@ __all__ = [
 logger = logging.getLogger(__name__)
 
 
+class McWorldBackupError(Exception):
+    pass
+
+
 class McWorldBackup:
-    """ Low level Minecraft world backup manager """
-    backup_dirs: list[str] = ["world"]
+    """Low level Minecraft world backup manager"""
+
+    backup_dirs: list[str] = ["world", "mods"]
     backup_location: str = "backups"
 
     def __init__(self, directory: str) -> None:

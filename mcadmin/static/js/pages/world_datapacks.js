@@ -7,7 +7,7 @@
         data: () => ({
             loaded: false,
             world_id: null,
-            world_datapacks: {},
+            world_datapacks: null,
             add_datapack_modal: null,
             add_datapack_form: {},
             adding_datapack: false,

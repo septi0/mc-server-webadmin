@@ -32,6 +32,7 @@ setup(
         "mcadmin.endpoints",
         "mcadmin.libraries",
         "mcadmin.libraries.mc_server",
+        "mcadmin.libraries.mc_server.downloader",
         "mcadmin.middlewares",
         "mcadmin.models",
         "mcadmin.schemas",

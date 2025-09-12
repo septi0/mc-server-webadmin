@@ -15,5 +15,6 @@ async def settings_template(request: web.Request):
     data = {}
 
     data["level_types"] = worlds_service.get_level_types()
+    data["server_types"] = list(worlds_service.get_server_types().keys())
 
     return data

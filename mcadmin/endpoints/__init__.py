@@ -12,6 +12,7 @@ from .worlds import worlds_routes
 from .global_properties import global_properties_routes
 from .world_backups import world_backups_routes
 from .world_datapacks import world_datapacks_routes
+from .world_mods import world_mods_routes
 
 __all__ = ["setup"]
 
@@ -34,3 +35,4 @@ def setup(app: web.Application) -> None:
     app.add_routes(global_properties_routes)
     app.add_routes(world_backups_routes)
     app.add_routes(world_datapacks_routes)
+    app.add_routes(world_mods_routes)

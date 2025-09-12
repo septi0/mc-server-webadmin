@@ -234,7 +234,9 @@ class McServerWebadminManager:
     async def _async_run_webserver(self):
         logger.info("Starting webserver")
 
-        server = web.Application()
+        server = web.Application(
+            client_max_size=1024**3, # 1GB max upload size
+        )
 
         server["di"] = self._di
 

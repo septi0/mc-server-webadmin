@@ -21,6 +21,7 @@ async def worlds_get(request: web.Request):
         return web.json_response([])
 
     worlds_list = []
+    server_types = worlds_service.get_server_types()
 
     for world in worlds:
         worlds_list.append(
@@ -32,6 +33,7 @@ async def worlds_get(request: web.Request):
                 "active": world.active,
                 "created_at": str(world.created_at),
                 "updated_at": str(world.updated_at),
+                "server_capabilities": server_types.get(world.server_type, {}).get("capabilities", []),
             }
         )
 
@@ -68,6 +70,7 @@ async def world_create(request: web.Request):
 
     name = str(post_data.get("name", ""))
     server_version = str(post_data.get("server_version", ""))
+    server_type = str(post_data.get("server_type", "vanilla"))
     world_archive = post_data.get("world_archive", None)
 
     min_version = worlds_service.get_min_server_version()
@@ -88,6 +91,7 @@ async def world_create(request: web.Request):
         world = await worlds_service.create_world(
             name=name,
             server_version=server_version,
+            server_type=server_type,
             properties=properties,
             world_archive=world_archive,
         )

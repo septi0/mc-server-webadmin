@@ -3,10 +3,6 @@ import os
 import aiofiles
 
 
-class McServerPropertyError(Exception):
-    pass
-
-
 __all__ = [
     "McServerPropertyError",
     "McServerPropertiesGenerator",
@@ -15,8 +11,13 @@ __all__ = [
 logger = logging.getLogger(__name__)
 
 
+class McServerPropertyError(Exception):
+    pass
+
+
 class McServerPropertiesGenerator:
-    """ Low level server.properties generator and validator """
+    """Low level server.properties generator and validator"""
+
     properties: dict = {
         "level-seed": {"empty": True},
         "gamemode": {"values": ["survival", "creative", "adventure", "spectator"]},

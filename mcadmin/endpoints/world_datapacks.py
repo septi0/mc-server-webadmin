@@ -23,6 +23,9 @@ async def world_datapacks_template(request: web.Request):
     if not world:
         raise web.HTTPNotFound(text="World not found")
 
+    if not "datapacks" in worlds_service.server_capabilities(world.server_type):
+        return web.json_response({"status": "error", "message": "Datapacks are not supported for this world type"}, status=403)
+
     data["world"] = world
 
     return data
@@ -38,6 +41,9 @@ async def world_datapacks_get(request: web.Request):
 
     if not world:
         return web.json_response({"status": "error", "message": "World not found"}, status=404)
+
+    if not "datapacks" in worlds_service.server_capabilities(world.server_type):
+        return web.json_response({"status": "error", "message": "Datapacks are not supported for this world type"}, status=403)
 
     datapacks = await worlds_service.list_world_datapacks(world)
 
@@ -73,6 +79,9 @@ async def world_datapack_add(request: web.Request):
     if not world:
         return web.json_response({"status": "error", "message": "World not found"}, status=404)
     
+    if not "datapacks" in worlds_service.server_capabilities(world.server_type):
+        return web.json_response({"status": "error", "message": "Datapacks are not supported for this world type"}, status=403)
+
     if not datapack_archive or not isinstance(datapack_archive, web.FileField):
         return web.json_response({"status": "error", "message": "No datapack archive provided"}, status=403)
 

@@ -66,6 +66,7 @@
                                         <span class="badge text-bg-success ms-2" v-if="w.active">Active</span>
                                     </div>
                                     <div class="text-muted small">Version: <strong v-text="w.server_version"></strong></div>
+                                    <div class="text-muted small">Type: <strong v-text="w.server_type"></strong></div>
                                 </div>
                                 <div class="d-flex flex-wrap gap-2 list-item-actions">
                                     <!-- Set Active -->
@@ -86,9 +87,15 @@
                                                 </a>
                                             </li>
                                             <li>
-                                                <a class="dropdown-item" :href="`/worlds/${w.id}/datapacks`">
+                                                <a class="dropdown-item" :href="`/worlds/${w.id}/datapacks`" :class="{ disabled: !w.server_capabilities.includes('datapacks') }">
                                                     <i class="bi bi-box me-2"></i>
                                                     Datapacks
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" :href="`/worlds/${w.id}/mods`" :class="{ disabled: !w.server_capabilities.includes('mods') }">
+                                                    <i class="bi bi-gear me-2"></i>
+                                                    Mods
                                                 </a>
                                             </li>
                                             <li>
@@ -224,20 +231,31 @@
                                 <span class="fw-semibold">Server Options</span>
                             </div>
 
-                            <div class="col-12 mb-3">
-                                <label class="form-label" for="world_name">World Name</label>
-                                <input class="form-control" id="world_name" type="text" placeholder="e.g. MyWorld" v-model="create_world_form.name" required>
-                            </div>
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="form-label" for="world_name">World Name</label>
+                                    <input class="form-control" id="world_name" type="text" placeholder="e.g. MyWorld" v-model="create_world_form.name" required>
+                                </div>
 
-                            <div class="col-12 mb-3">
-                                <label class="form-label" for="c_server_version">Server Version</label>
-                                <input class="form-control" id="c_server_version" type="text" placeholder="e.g. 1.17" v-model="create_world_form.server_version" required>
-                            </div>
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label" for="c_server_type">Server Type</label>
+                                    <select class="form-control" id="c_server_type" v-model="create_world_form.server_type">
+                                        {% for st in server_types %}
+                                        <option value="{{ st }}">{{ st.replace("_", " ").capitalize() }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
 
-                            <div class="col-12">
-                                <label class="form-label" for="world_file">Upload World (ZIP)</label>
-                                <input class="form-control" ref="world_file" id="world_file" type="file" accept=".zip" @change="handleWorldFileUpload($event)">
-                                <div class="form-text">If you upload a ZIP, world options are ignored. We'll import the world as-is.</div>
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label" for="c_server_version">Server Version</label>
+                                    <input class="form-control" id="c_server_version" type="text" placeholder="e.g. 1.17" v-model="create_world_form.server_version" required>
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label" for="world_file">Upload World (ZIP)</label>
+                                    <input class="form-control" ref="world_file" id="world_file" type="file" accept=".zip" @change="handleWorldFileUpload($event)">
+                                    <div class="form-text">If you upload a ZIP, world options are ignored. We'll import the world as-is.</div>
+                                </div>
                             </div>
                         </div>
 
@@ -251,12 +269,12 @@
                             <div class="row g-3" id="world-props">
                                 <div class="col-12 col-md-6">
                                     <label class="form-label" for="seed">Seed (optional)</label>
-                                    <input class="form-control" id="seed" name="seed" type="text" placeholder="leave empty for random" v-model="create_world_form.properties['level-seed']">
+                                    <input class="form-control" id="seed" type="text" placeholder="leave empty for random" v-model="create_world_form.properties['level-seed']">
                                 </div>
 
                                 <div class="col-12 col-md-6">
                                     <label class="form-label" for="level_type">Level Type</label>
-                                    <select class="form-select" id="level_type" name="level_type" v-model="create_world_form.properties['level-type']">
+                                    <select class="form-select" id="level_type" v-model="create_world_form.properties['level-type']">
                                         {% for lt in level_types %}
                                         <option value="{{ lt }}">{{ lt.replace("_", " ").capitalize() }}</option>
                                         {% endfor %}
@@ -265,7 +283,7 @@
 
                                 <div class="col-12">
                                     <div class="form-check">
-                                        <input class="form-check-input" id="hardcore" name="hardcore" type="checkbox" v-model="create_world_form.properties.hardcore">
+                                        <input class="form-check-input" id="hardcore" type="checkbox" v-model="create_world_form.properties.hardcore">
                                         <label class="form-check-label" for="hardcore">Hardcore mode</label>
                                     </div>
                                 </div>

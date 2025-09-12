@@ -4,6 +4,7 @@ from mcadmin.models.worlds import Worlds
 from mcadmin.models.global_properties import GlobalProperties
 from mcadmin.models.world_backups import WorldBackups
 from mcadmin.models.world_datapacks import WorldDatapacks
+from mcadmin.models.world_mods import WorldMods
 from mcadmin.services.server import ServerService
 from mcadmin.libraries.mc_server import McServerRunner, McWorldManager
 
@@ -88,6 +89,7 @@ class WorldsService:
         # clean up related data
         await WorldBackups.filter(world_id=world.id).delete()
         await WorldDatapacks.filter(world_id=world.id).delete()
+        await WorldMods.filter(world_id=world.id).delete()
 
         await world.delete()
 
@@ -203,6 +205,27 @@ class WorldsService:
         await self._mc_world_manager.delete_world_instance_datapack(str(world.id), str(datapack.id))
         await datapack.delete()
 
+    async def list_world_mods(self, world: Worlds) -> list[WorldMods]:
+        return await WorldMods.filter(world_id=world.id).order_by("-added_at")
+
+    async def get_world_mod(self, world: Worlds, mod_id: int) -> WorldMods | None:
+        return await WorldMods.get_or_none(world_id=world.id, id=mod_id)
+
+    async def add_world_mod(self, world: Worlds, *, mod_jar: BinaryIO, **kwargs) -> WorldMods:
+        mod = await WorldMods.create(world_id=world.id, **kwargs)
+
+        try:
+            await self._mc_world_manager.add_world_instance_mod(str(world.id), str(mod.id), mod_jar=mod_jar)
+        except Exception:
+            await mod.delete()
+            raise
+
+        return mod
+
+    async def delete_world_mod(self, world: Worlds, mod: WorldMods) -> None:
+        await self._mc_world_manager.delete_world_instance_mod(str(world.id), str(mod.id))
+        await mod.delete()
+
     def get_level_types(self) -> list[str]:
         return self._mc_world_manager.get_level_types()
 
@@ -211,3 +234,9 @@ class WorldsService:
 
     def validate_properties(self, properties: dict) -> None:
         self._mc_world_manager.validate_properties(properties)
+
+    def get_server_types(self) -> dict:
+        return self._mc_world_manager.get_server_types()
+
+    def server_capabilities(self, server_type: str) -> list[str]:
+        return self._mc_world_manager.server_capabilities(server_type)

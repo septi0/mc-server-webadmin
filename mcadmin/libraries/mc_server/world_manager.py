@@ -13,10 +13,7 @@ from .downloader import McServerDownloader
 from .properties_generator import McServerPropertiesGenerator
 from .backup import McWorldBackup
 from .datapack import McWorldDatapack
-
-
-class McWorldManagerError(Exception):
-    pass
+from .mod import McWorldMod
 
 
 __all__ = [
@@ -27,8 +24,13 @@ __all__ = [
 logger = logging.getLogger(__name__)
 
 
+class McWorldManagerError(Exception):
+    pass
+
+
 class McWorldManager:
-    """ Minecraft world instance manager """
+    """Minecraft world instance manager"""
+
     default_server_ip: str = "0.0.0.0"
     default_server_port: int = 25565
     default_rcon_port: int = 25575
@@ -62,8 +64,14 @@ class McWorldManager:
         properties: dict,
     ) -> None:
         workdir = self._gen_workdir(world, assert_exists=True)
+        java_version = self._get_java_version(server_version)
 
-        downloader = McServerDownloader(workdir)
+        if self._server_config.get("java_bin", ""):
+            java_bin = self._server_config["java_bin"]
+        else:
+            java_bin = f"java-{java_version}" if java_version else "java"
+
+        downloader = McServerDownloader(workdir, java_bin=java_bin)
         properties_generator = McServerPropertiesGenerator(
             workdir,
             server_ip=self._server_config.get("server_ip", self.default_server_ip),
@@ -89,7 +97,7 @@ class McWorldManager:
         (done, pending) = await asyncio.wait(tasks, return_when=asyncio.FIRST_EXCEPTION)
         server_params = {
             "args": [],
-            "java_version": self._get_recommended_java(server_version),
+            "java_version": java_version,
         }
 
         for task in pending:
@@ -131,23 +139,23 @@ class McWorldManager:
     async def backup_world_instance(self, world: str, backup: str) -> None:
         workdir = self._gen_workdir(world, assert_exists=True)
         mc_backup = McWorldBackup(workdir)
-        
+
         await mc_backup.backup(backup)
 
     async def restore_world_instance(self, world: str, backup: str) -> None:
         workdir = self._gen_workdir(world, assert_exists=True)
         mc_backup = McWorldBackup(workdir)
-        
+
         await mc_backup.restore(backup)
-        
+
         logger.info(f"World instance {world} restored from backup {backup}")
 
     async def delete_world_instance_backup(self, world: str, backup: str) -> None:
         workdir = self._gen_workdir(world, assert_exists=True)
         mc_backup = McWorldBackup(workdir)
-        
+
         await mc_backup.delete_backup(backup)
-        
+
     async def add_world_instance_datapack(self, world: str, datapack_name: str, *, datapack_archive: BinaryIO) -> None:
         workdir = self._gen_workdir(world, assert_exists=True)
         mc_datapack = McWorldDatapack(workdir)
@@ -159,10 +167,22 @@ class McWorldManager:
         mc_datapack = McWorldDatapack(workdir)
 
         await mc_datapack.delete(datapack_name)
+        
+    async def add_world_instance_mod(self, world: str, mod_name: str, *, mod_jar: BinaryIO) -> None:
+        workdir = self._gen_workdir(world, assert_exists=True)
+        mc_mod = McWorldMod(workdir)
+
+        await mc_mod.add(mod_name, mod_jar=mod_jar)
+        
+    async def delete_world_instance_mod(self, world: str, mod_name: str) -> None:
+        workdir = self._gen_workdir(world, assert_exists=True)
+        mc_mod = McWorldMod(workdir)
+
+        await mc_mod.delete(mod_name)
 
     def validate_properties(self, properties: dict) -> None:
         McServerPropertiesGenerator.validate_properties(properties)
-        
+
     def get_level_types(self) -> list[str]:
         return McServerPropertiesGenerator.level_types
 
@@ -192,6 +212,12 @@ class McWorldManager:
         info["ip"] = self._resolve_wildcard_ip(self._server_config.get("server_ip", self.default_server_ip))
 
         return info
+
+    def get_server_types(self) -> dict:
+        return McServerDownloader.server_types
+
+    def server_capabilities(self, server_type: str) -> list[str]:
+        return McServerDownloader.server_types.get(server_type, {}).get("capabilities", [])
 
     async def _import_world(self, workdir: str, world_archive: BinaryIO) -> None:
         logger.info(f"Extracting existing world data archive")
@@ -313,7 +339,7 @@ class McWorldManager:
 
         os.symlink(world_instance_path, current_link)
 
-    def _get_recommended_java(self, server_version: str) -> int:
+    def _get_java_version(self, server_version: str) -> int:
         v = version.parse(server_version)
 
         if v >= version.parse("1.21"):

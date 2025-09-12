@@ -152,6 +152,18 @@
         async deleteWorldDatapack(world_id, datapack_id) {
             return this.fetch(`worlds/${world_id}/datapacks/${datapack_id}`, "DELETE");
         },
+
+        async getWorldMods(world_id) {
+            return this.fetch(`worlds/${world_id}/mods`);
+        },
+
+        async addWorldMod(world_id, data) {
+            return this.fetch(`worlds/${world_id}/mods`, "POST", data);
+        },
+
+        async deleteWorldMod(world_id, mod_id) {
+            return this.fetch(`worlds/${world_id}/mods/${mod_id}`, "DELETE");
+        },
         
     };
 

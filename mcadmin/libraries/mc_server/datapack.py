@@ -5,10 +5,6 @@ from typing import BinaryIO
 import aiofiles
 
 
-class McWorldDatapackError(Exception):
-    pass
-
-
 __all__ = [
     "McWorldDatapackError",
     "McWorldDatapack",
@@ -17,15 +13,20 @@ __all__ = [
 logger = logging.getLogger(__name__)
 
 
+class McWorldDatapackError(Exception):
+    pass
+
+
 class McWorldDatapack:
-    """ Low level Minecraft world datapack manager """
-    datapack_location: str = os.path.join("world", "datapacks")
+    """Low level Minecraft world datapack manager"""
+
+    datapacks_location: str = os.path.join("world", "datapacks")
 
     def __init__(self, directory: str) -> None:
         self._directory: str = directory
 
     async def add(self, datapack_name: str, *, datapack_archive: BinaryIO) -> None:
-        datapacks_dir = os.path.join(self._directory, self.datapack_location)
+        datapacks_dir = os.path.join(self._directory, self.datapacks_location)
 
         if not os.path.exists(datapacks_dir):
             logger.info(f"Creating datapacks directory")
@@ -40,7 +41,7 @@ class McWorldDatapack:
         logger.info(f"Datapack {datapack_name} added")
 
     async def delete(self, datapack_name: str) -> None:
-        datapacks_dir = os.path.join(self._directory, self.datapack_location)
+        datapacks_dir = os.path.join(self._directory, self.datapacks_location)
         datapack_path = os.path.join(datapacks_dir, f"{datapack_name}.zip")
 
         if not os.path.exists(datapack_path):

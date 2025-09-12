@@ -227,6 +227,7 @@
 
             resetCreateWorldModal() {
                 this.create_world_form = {
+                    server_type: "vanilla",
                     properties: {
                         "level-type": "default",
                     },

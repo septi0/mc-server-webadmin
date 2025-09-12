@@ -8,10 +8,6 @@ import re
 from datetime import datetime, timezone
 from typing import Any
 
-
-class McServerRunnerError(Exception):
-    pass
-
 __all__ = [
     "McServerRunnerError",
     "McServerRunnerEvent",
@@ -19,6 +15,10 @@ __all__ = [
 ]
 
 logger = logging.getLogger(__name__)
+
+
+class McServerRunnerError(Exception):
+    pass
 
 
 class McServerRunnerEvent:
@@ -47,7 +47,8 @@ class McServerRunnerEvent:
 
 
 class McServerRunner:
-    """ Minecraft server runner. Interacts with the Minecraft server process """
+    """Minecraft server runner. Interacts with the Minecraft server process"""
+
     def __init__(
         self,
         directory: str,

@@ -10,7 +10,7 @@ zip_signatures = [b'PK\x03\x04', b'PK\x05\x06', b'PK\x07\x08']
 class CreateWorldSchema(BaseModel):
     name: str = Field(title="World Name", max_length=30)
     server_version: str = Field(title="Server Version")
-    world_archive: Optional[Any]
+    world_archive: Optional[Any] = None
 
     @field_validator("server_version")
     @classmethod
@@ -60,5 +60,18 @@ class AddWorldDatapackSchema(BaseModel):
         elif not any(v.file.read(len(sig)) == sig for sig in zip_signatures):
             raise ValueError("Datapack archive is not a valid zip file")
         v.file.seek(0)
+
+        return v
+
+class AddWorldModSchema(BaseModel):
+    mod_jar: Any
+
+    @field_validator("mod_jar")
+    @classmethod
+    def check_mod_jar(cls, v):
+        if not isinstance(v, web.FileField):
+            raise ValueError("Mod jar must be a file")
+        elif not v.filename.endswith(".jar"):
+            raise ValueError("Mod jar must be a .jar file")
 
         return v

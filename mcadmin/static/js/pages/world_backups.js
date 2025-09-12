@@ -6,7 +6,7 @@
         data: () => ({
             loaded: false,
             world_id: null,
-            world_backups: {},
+            world_backups: null,
             last_backup_dt: null,
             creating_backup: false,
         }),
