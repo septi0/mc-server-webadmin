@@ -5,13 +5,14 @@ import logging
 import asyncio
 from glob import glob
 from .error import McServerDownloaderError
+from .base import BaseMcServerDownloader
 
 __all__ = ["ForgeServerDownloader"]
 
 logger = logging.getLogger(__name__)
 
 
-class ForgeServerDownloader:
+class ForgeServerDownloader(BaseMcServerDownloader):
     def __init__(self, directory: str, server_version: str, *, java_bin: str = "java") -> None:
         self._directory: str = directory
         self._server_version: str = server_version
@@ -20,6 +21,7 @@ class ForgeServerDownloader:
         self._versions_index_url = "https://files.minecraftforge.net/net/minecraftforge/forge/maven-metadata.json"
         self._version_download_url = "https://files.minecraftforge.net/maven/net/minecraftforge/forge/{version}/forge-{version}-installer.jar"
         self._installer_path = "/tmp/forge-installer.jar"
+        self._link_paths = ["libraries"]
 
     async def download(self) -> None:
         url = await self._get_installer_download_url()
@@ -32,6 +34,9 @@ class ForgeServerDownloader:
                 await f.write(response.content)
 
         await self._run_installer()
+
+    def get_link_paths(self) -> list[str]:
+        return [os.path.join(self._directory, path) for path in self._link_paths]
 
     async def get_jvm_args(self) -> list[str]:
         # search for a forge-<version>*.jar file

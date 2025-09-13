@@ -34,7 +34,6 @@ class McServerDownloader:
         self._directory: str = directory
         self._java_bin: str = java_bin
 
-        self._link_paths: list[str] = ["libraries"]
         self._jvm_args_filename: str = "mcadmin_jvm_args.txt"
 
     async def download_server(self, server_type: str, server_version: str, no_cache: bool = False) -> None:
@@ -61,7 +60,9 @@ class McServerDownloader:
 
     def get_link_paths(self, server_type: str, server_version: str) -> list[str]:
         workdir = self._gen_workdir(server_type, server_version)
-        return [os.path.join(workdir, p) for p in self._link_paths]
+        downloader = self._get_downloader_instance(server_type, workdir, server_version, java_bin=self._java_bin)
+        
+        return downloader.get_link_paths()
 
     async def get_jvm_args(self, server_type: str, server_version: str) -> list[str]:
         workdir = self._gen_workdir(server_type, server_version)
@@ -71,7 +72,7 @@ class McServerDownloader:
         jvm_args = []
 
         jvm_args.extend(await patcher.get_jvm_args())
-        
+
         # downloader jvm args must be last, as they may contain -jar argument
         jvm_args.extend(await downloader.get_jvm_args())
 

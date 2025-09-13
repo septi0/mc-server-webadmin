@@ -239,8 +239,8 @@ class McWorldManager:
                 async with aiofiles.open(src, "w") as f:
                     await f.write("[]")
 
-            if os.path.islink(dst) or os.path.exists(dst):
-                os.remove(dst)
+            if os.path.islink(dst):
+                os.unlink(dst)
 
             os.symlink(src, dst)
             logger.info(f"Linked {src} to {dst}")
@@ -249,8 +249,8 @@ class McWorldManager:
             link_name = os.path.basename(src)
             dst = os.path.join(workdir, link_name)
 
-            if os.path.islink(dst) or os.path.exists(dst):
-                os.remove(dst)
+            if os.path.islink(dst):
+                os.unlink(dst)
 
             if os.path.exists(src):
                 os.symlink(src, dst)

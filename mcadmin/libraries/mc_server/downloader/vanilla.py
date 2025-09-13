@@ -3,12 +3,14 @@ import httpx
 import os
 import logging
 from .error import McServerDownloaderError
+from .base import BaseMcServerDownloader
 
 __all__ = ["VanillaServerDownloader"]
 
 logger = logging.getLogger(__name__)
 
-class VanillaServerDownloader:
+
+class VanillaServerDownloader(BaseMcServerDownloader):
     def __init__(self, directory: str, server_version: str, *, java_bin: str = "java") -> None:
         self._directory: str = directory
         self._server_version: str = server_version
@@ -33,6 +35,9 @@ class VanillaServerDownloader:
         jar_path = os.path.join(self._directory, filename)
 
         return [f"-jar {jar_path}"]
+
+    def get_link_paths(self) -> list[str]:
+        return []
 
     async def _get_download_url(self) -> str:
         logger.info(f"Fetching versions index from {self._versions_index_url}")
