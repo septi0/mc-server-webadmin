@@ -1,14 +1,12 @@
 import logging
-import json
 import os
 import asyncio
 import shutil
 import aiofiles
-import httpx
 import zipfile
 import socket
-from packaging import version
 from typing import BinaryIO
+from packaging import version
 from .downloader import McServerDownloader
 from .properties_generator import McServerPropertiesGenerator
 from .backup import McWorldBackup
@@ -64,14 +62,15 @@ class McWorldManager:
         properties: dict,
     ) -> None:
         workdir = self._gen_workdir(world, assert_exists=True)
-        java_version = self._get_java_version(server_version)
+        versions_path = os.path.join(self._directory, "versions")
+        java_version = self._suggested_java_version(server_version)
 
         if self._server_config.get("java_bin", ""):
             java_bin = self._server_config["java_bin"]
         else:
             java_bin = f"java-{java_version}" if java_version else "java"
 
-        downloader = McServerDownloader(workdir, java_bin=java_bin)
+        downloader = McServerDownloader(versions_path, java_bin=java_bin)
         properties_generator = McServerPropertiesGenerator(
             workdir,
             server_ip=self._server_config.get("server_ip", self.default_server_ip),
@@ -81,24 +80,16 @@ class McWorldManager:
 
         tasks = [
             asyncio.create_task(
-                downloader.download_server(server_version, server_type),
+                downloader.download_server(server_type, server_version, no_cache=False),
                 name="download_server",
             ),
             asyncio.create_task(
                 properties_generator.generate(properties),
                 name="generate_server_properties",
             ),
-            asyncio.create_task(
-                self._patch_log4j(workdir, server_version),
-                name="patch_log4j",
-            ),
         ]
 
         (done, pending) = await asyncio.wait(tasks, return_when=asyncio.FIRST_EXCEPTION)
-        server_params = {
-            "args": [],
-            "java_version": java_version,
-        }
 
         for task in pending:
             logger.warning(f"Task {task.get_name()} is still pending. Cancelling it.")
@@ -108,11 +99,11 @@ class McWorldManager:
             if task.exception() is not None:
                 raise McWorldManagerError(f"Task {task.get_name()} failed with exception: {task.exception()}")
 
-            if task.get_name() == "patch_log4j":
-                server_params["args"].extend(task.result())
+        jvm_args = await downloader.get_jvm_args(server_type, server_version)
+        additional_links = downloader.get_link_paths(server_type, server_version)
 
-        await self._write_server_params(workdir, server_params)
-        await self._link_common_files(workdir)
+        await self._link_common_files(workdir, additional_links=additional_links)
+        await self._gen_start_script(workdir, jvm_args, java_bin=java_bin)
 
         self._link_world_instance_to_current(world)
 
@@ -167,13 +158,13 @@ class McWorldManager:
         mc_datapack = McWorldDatapack(workdir)
 
         await mc_datapack.delete(datapack_name)
-        
+
     async def add_world_instance_mod(self, world: str, mod_name: str, *, mod_jar: BinaryIO) -> None:
         workdir = self._gen_workdir(world, assert_exists=True)
         mc_mod = McWorldMod(workdir)
 
         await mc_mod.add(mod_name, mod_jar=mod_jar)
-        
+
     async def delete_world_instance_mod(self, world: str, mod_name: str) -> None:
         workdir = self._gen_workdir(world, assert_exists=True)
         mc_mod = McWorldMod(workdir)
@@ -235,7 +226,7 @@ class McWorldManager:
         async with aiofiles.open(eula_file, "w") as f:
             await f.write("eula=true")
 
-    async def _link_common_files(self, workdir: str) -> None:
+    async def _link_common_files(self, workdir: str, *, additional_links: list[str]) -> None:
         logger.info(f"Linking common files for world instance {workdir}")
 
         common_files = ["banned-ips.json", "banned-players.json", "ops.json", "usercache.json", "whitelist.json"]
@@ -254,57 +245,28 @@ class McWorldManager:
             os.symlink(src, dst)
             logger.info(f"Linked {src} to {dst}")
 
-    # 1.18: Upgrade to 1.18.1, if possible. If not, use the same approach as for 1.17.x:
+        for src in additional_links:
+            link_name = os.path.basename(src)
+            dst = os.path.join(workdir, link_name)
 
-    # 1.17: Add the following JVM arguments to your startup command line:
-    # -Dlog4j2.formatMsgNoLookups=true
+            if os.path.islink(dst) or os.path.exists(dst):
+                os.remove(dst)
 
-    # 1.12-1.16.5: Download this file to the working directory where your server runs. Then add the following JVM arguments to your startup command line:
-    # -Dlog4j.configurationFile=log4j2_112-116.xml
+            if os.path.exists(src):
+                os.symlink(src, dst)
+                logger.info(f"Linked {src} to {dst}")
 
-    # 1.7-1.11.2: Download this file to the working directory where your server runs. Then add the following JVM arguments to your  startup command line:
-    # -Dlog4j.configurationFile=log4j2_17-111.xml
+    async def _gen_start_script(self, workdir: str, jvm_args: list[str], *, java_bin: str) -> None:
+        logger.info(f"Generating start script for world instance {workdir}")
 
-    # Versions below 1.7 are not affected
-    async def _patch_log4j(self, workdir: str, server_version: str) -> list[str]:
-        logger.info(f"Patching Log4j for server version {server_version}")
+        start_script = os.path.join(workdir, "mcadmin-start.sh")
 
-        v17_111_patch = "https://launcher.mojang.com/v1/objects/4bb89a97a66f350bc9f73b3ca8509632682aea2e/log4j2_17-111.xml"
-        v112_116_patch = "https://launcher.mojang.com/v1/objects/02937d122c86ce73319ef9975b58896fc1b491d1/log4j2_112-116.xml"
+        async with aiofiles.open(start_script, "w") as f:
+            await f.write("#!/usr/bin/env sh\n")
+            await f.write(f"MCADMIN_RUNTIME_JAVA_BIN=${{MCADMIN_RUNTIME_JAVA_BIN:-{java_bin}}}\n")
+            await f.write(f'$MCADMIN_RUNTIME_JAVA_BIN $MCADMIN_RUNTIME_JVM_ARGS {" ".join(jvm_args)} "$@"\n')
 
-        v = version.parse(server_version)
-        args = []
-
-        if v < version.parse("1.7"):
-            pass
-        elif v < version.parse("1.12"):
-            await self._download_file(v17_111_patch, os.path.join(workdir, "log4j2_17-111.xml"))
-            args = ["-Dlog4j.configurationFile=log4j2_17-111.xml"]
-        elif v < version.parse("1.17"):
-            await self._download_file(v112_116_patch, os.path.join(workdir, "log4j2_112-116.xml"))
-            args = ["-Dlog4j.configurationFile=log4j2_112-116.xml"]
-        elif v < version.parse("1.18.1"):
-            args = ["-Dlog4j2.formatMsgNoLookups=true"]
-
-        return args
-
-    async def _download_file(self, url: str, dest: str) -> None:
-        logger.info(f"Downloading {url}")
-
-        async with httpx.AsyncClient() as client:
-            response = await client.get(url)
-            response.raise_for_status()
-
-            async with aiofiles.open(dest, "wb") as f:
-                await f.write(response.content)
-
-    async def _write_server_params(self, workdir: str, data: dict) -> None:
-        logger.info(f"Writing server params")
-
-        info_file = os.path.join(workdir, "server_params.json")
-
-        async with aiofiles.open(info_file, "w") as f:
-            await f.write(json.dumps(data))
+        os.chmod(start_script, 0o755)
 
     def _resolve_wildcard_ip(self, ip: str) -> str:
         if ip not in ("0.0.0.0", ""):
@@ -313,7 +275,7 @@ class McWorldManager:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
         try:
-            s.connect(("8.8.8.8", 80))
+            s.connect(("1.1.1.1", 80))
             ip = s.getsockname()[0]
         finally:
             s.close()
@@ -321,7 +283,7 @@ class McWorldManager:
         return ip
 
     def _gen_workdir(self, world: str, *, assert_exists=False) -> str:
-        workdir = os.path.join(self._directory, world)
+        workdir = os.path.join(self._directory, "worlds", world)
 
         if assert_exists and not os.path.exists(workdir):
             raise McWorldManagerError(f"World instance {world} does not exist")
@@ -331,7 +293,7 @@ class McWorldManager:
     def _link_world_instance_to_current(self, world: str) -> None:
         logger.info(f"Linking world instance {world} to 'current'")
 
-        current_link = self._gen_workdir("current")
+        current_link = os.path.join(self._directory, "current")
         world_instance_path = self._gen_workdir(world)
 
         if os.path.islink(current_link) or os.path.exists(current_link):
@@ -339,7 +301,7 @@ class McWorldManager:
 
         os.symlink(world_instance_path, current_link)
 
-    def _get_java_version(self, server_version: str) -> int:
+    def _suggested_java_version(self, server_version: str) -> int:
         v = version.parse(server_version)
 
         if v >= version.parse("1.21"):

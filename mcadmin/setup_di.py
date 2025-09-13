@@ -47,8 +47,8 @@ def setup_di(deps: DiContainer, *, config: dict, data_directory: str = "") -> No
     deps.mc_server_ev_queue = asyncio.Queue()
 
     # libraries
-    deps.mc_server_runner = McServerRunner(os.path.join(data_directory, "world_instances/current"), deps.mc_server_config, events_queue=deps.mc_server_ev_queue)
-    deps.mc_world_manager = McWorldManager(os.path.join(data_directory, "world_instances"), deps.mc_server_config)
+    deps.mc_server_runner = McServerRunner(os.path.join(data_directory, "mc/current"), deps.mc_server_config, events_queue=deps.mc_server_ev_queue)
+    deps.mc_world_manager = McWorldManager(os.path.join(data_directory, "mc"), deps.mc_server_config)
     deps.mc_server_ev_dispatcher = QueueDispatcher(deps.mc_server_ev_queue)
 
     # services

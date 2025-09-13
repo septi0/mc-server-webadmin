@@ -20,13 +20,7 @@ class ServerService:
         return self._mc_server_runner.get_server_stats()
 
     async def start_server(self) -> None:
-        try:
-            await self._mc_server_runner.start_server()
-        except Exception as e:
-            if str(e) == "server.jar not found":
-                raise Exception("No active world set. Activate a world from the Settings menu") from None
-
-            raise e
+        await self._mc_server_runner.start_server()
 
     async def stop_server(self) -> None:
         await self._mc_server_runner.stop_server()

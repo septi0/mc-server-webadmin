@@ -5,6 +5,7 @@ import os
 import asyncio
 import aiofiles
 import re
+import shlex
 from datetime import datetime, timezone
 from typing import Any
 
@@ -209,20 +210,31 @@ class McServerRunner:
         if self._is_running():
             return
 
-        # check if server.jar exists
-        jar_path = os.path.join(self._directory, "server.jar")
-        if not os.path.exists(jar_path):
-            raise McServerRunnerError("server.jar not found")
+        xms = self._server_config.get("java_min_memory", "1024M")
+        xmx = self._server_config.get("java_max_memory", "1024M")
+        additional_jvm_args = self._server_config.get("server_additional_args", [])
 
-        server_params = await self._get_server_params()
-        cmd = self._gen_start_command(server_params=server_params)
+        jvm_args = [
+            f"-Xms{xms}",
+            f"-Xmx{xmx}",
+            *additional_jvm_args
+        ]
 
-        logger.info(f"Starting MC server with java bin '{cmd[0]}'")
-        logger.debug(cmd)
+        env = {
+            "MCADMIN_RUNTIME_JVM_ARGS": shlex.join(jvm_args),
+        }
+
+        if self._server_config.get("java_bin", ""):
+            env["MCADMIN_RUNTIME_JAVA_BIN"] = self._server_config["java_bin"]
+
+        logger.info(f"Starting MC server")
+        
+        cmd = ["./mcadmin-start.sh", "nogui"]
 
         self._proc = await asyncio.create_subprocess_exec(
             *cmd,
             cwd=self._directory,
+            env={**os.environ, **env},
             stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.DEVNULL,
@@ -340,16 +352,6 @@ class McServerRunner:
         await asyncio.gather(self._proc_stdout_task, return_exceptions=True)
         self._proc_stdout_task = None
 
-    async def _get_server_params(self) -> dict:
-        args_file = os.path.join(self._directory, "server_params.json")
-
-        if not os.path.exists(args_file):
-            return {}
-
-        async with aiofiles.open(args_file, "r") as f:
-            data_raw = await f.read()
-            return json.loads(data_raw)
-
     async def _set_server_stats(self, **kwargs) -> None:
         if not os.path.exists(self._directory):
             raise McServerRunnerError("Workdir does not exist")
@@ -390,27 +392,3 @@ class McServerRunner:
 
     def _is_running(self) -> bool:
         return bool(self._proc) and (self._proc.returncode is None)
-
-    def _gen_start_command(self, *, server_params: dict = {}) -> list[str]:
-        if self._server_config.get("java_bin", ""):
-            java_bin = self._server_config["java_bin"]
-        else:
-            java_version = server_params.get("java_version", "")
-            java_bin = f"java-{java_version}" if java_version else "java"
-
-        xms = self._server_config.get("java_min_memory", "1024M")
-        xmx = self._server_config.get("java_max_memory", "1024M")
-
-        server_args = [*server_params.get("args", []), *(self._server_config.get("server_additional_args", []))]
-
-        cmd = [
-            java_bin,
-            f"-Xms{xms}",
-            f"-Xmx{xmx}",
-            *server_args,
-            "-jar",
-            "server.jar",
-            "nogui",
-        ]
-
-        return cmd
