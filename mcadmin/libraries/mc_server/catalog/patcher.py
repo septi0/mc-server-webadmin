@@ -9,8 +9,8 @@ __all__ = ["McServerPatcher"]
 logger = logging.getLogger(__name__)
 
 class McServerPatcher:
-    def __init__(self, directory: str, server_version: str) -> None:
-        self._directory: str = directory
+    def __init__(self, version_dir: str, server_version: str) -> None:
+        self._version_dir: str = version_dir
         self._server_version: str = server_version
 
     async def patch(self) -> None:
@@ -46,10 +46,10 @@ class McServerPatcher:
         if v < version.parse("1.7"):
             pass
         elif v < version.parse("1.12"):
-            file = os.path.join(self._directory, "log4j2_17-111.xml")
+            file = os.path.join(self._version_dir, "log4j2_17-111.xml")
             await self._download_file(v17_111_patch, file)
         elif v < version.parse("1.17"):
-            file = os.path.join(self._directory, "log4j2_112-116.xml")
+            file = os.path.join(self._version_dir, "log4j2_112-116.xml")
             await self._download_file(v112_116_patch, file)
 
     async def _get_log4j_jvm_args(self) -> list[str]:
@@ -59,10 +59,10 @@ class McServerPatcher:
         if v < version.parse("1.7"):
             pass
         elif v < version.parse("1.12"):
-            file = os.path.join(self._directory, "log4j2_17-111.xml")
+            file = os.path.join(self._version_dir, "log4j2_17-111.xml")
             args = [f"-Dlog4j.configurationFile={file}"]
         elif v < version.parse("1.17"):
-            file = os.path.join(self._directory, "log4j2_112-116.xml")
+            file = os.path.join(self._version_dir, "log4j2_112-116.xml")
             args = [f"-Dlog4j.configurationFile={file}"]
         elif v < version.parse("1.18.1"):
             args = ["-Dlog4j2.formatMsgNoLookups=true"]

@@ -5,35 +5,35 @@ import shutil
 
 
 __all__ = [
-    "McWorldBackupError",
-    "McWorldBackup",
+    "McServerBackupError",
+    "McServerBackup",
 ]
 
 logger = logging.getLogger(__name__)
 
 
-class McWorldBackupError(Exception):
+class McServerBackupError(Exception):
     pass
 
 
-class McWorldBackup:
+class McServerBackup:
     """Low level Minecraft world backup manager"""
 
     backup_dirs: list[str] = ["world", "mods"]
-    backup_location: str = "backups"
 
-    def __init__(self, directory: str) -> None:
-        self._directory: str = directory
+    def __init__(self, instance_dir: str, backups_dir: str) -> None:
+        self._instance_dir: str = instance_dir
+        self._backups_dir: str = backups_dir
 
     async def backup(self, backup: str) -> None:
-        backup_dir = os.path.join(self._directory, self.backup_location, backup)
+        backup_dir = os.path.join(self._backups_dir, backup)
 
         if not os.path.exists(backup_dir):
             logger.info(f"Creating backup directory {backup_dir}")
             os.makedirs(backup_dir)
 
         for d in self.backup_dirs:
-            src_dir = os.path.join(self._directory, d)
+            src_dir = os.path.join(self._instance_dir, d)
             dst_dir = os.path.join(backup_dir, d)
 
             if os.path.exists(src_dir):
@@ -45,14 +45,14 @@ class McWorldBackup:
         logger.info(f"Successfully backed up data to {backup}")
 
     async def restore(self, backup: str) -> None:
-        backup_dir = os.path.join(self._directory, self.backup_location, backup)
+        backup_dir = os.path.join(self._backups_dir, backup)
 
         if not os.path.exists(backup_dir):
-            raise McWorldBackupError(f"Backup {backup} does not exist")
+            raise McServerBackupError(f"Backup {backup} does not exist")
 
         for d in os.listdir(backup_dir):
             src_dir = os.path.join(backup_dir, d)
-            dst_dir = os.path.join(self._directory, d)
+            dst_dir = os.path.join(self._instance_dir, d)
 
             if os.path.exists(dst_dir):
                 await asyncio.to_thread(shutil.rmtree, dst_dir)
@@ -60,10 +60,10 @@ class McWorldBackup:
             await asyncio.to_thread(shutil.copytree, src_dir, dst_dir)
 
     async def delete_backup(self, backup: str) -> None:
-        backup_dir = os.path.join(self._directory, self.backup_location, backup)
+        backup_dir = os.path.join(self._backups_dir, backup)
 
         if not os.path.exists(backup_dir):
-            raise McWorldBackupError(f"Backup {backup} does not exist")
+            raise McServerBackupError(f"Backup {backup} does not exist")
 
         await asyncio.to_thread(shutil.rmtree, backup_dir)
 

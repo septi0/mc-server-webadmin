@@ -52,13 +52,13 @@ class McServerRunner:
 
     def __init__(
         self,
-        directory: str,
+        current_dir: str,
         server_config: dict,
         *,
         events_queue: asyncio.Queue | None = None,
     ) -> None:
 
-        self._directory: str = directory
+        self._current_dir: str = current_dir
         self._server_config: dict = server_config
         self._events_queue: asyncio.Queue | None = events_queue
 
@@ -228,12 +228,12 @@ class McServerRunner:
             env["MCADMIN_RUNTIME_JAVA_BIN"] = self._server_config["java_bin"]
 
         logger.info(f"Starting MC server")
-        
+
         cmd = ["./mcadmin-start.sh", "nogui"]
 
         self._proc = await asyncio.create_subprocess_exec(
             *cmd,
-            cwd=self._directory,
+            cwd=self._current_dir,
             env={**os.environ, **env},
             stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
@@ -353,10 +353,10 @@ class McServerRunner:
         self._proc_stdout_task = None
 
     async def _set_server_stats(self, **kwargs) -> None:
-        if not os.path.exists(self._directory):
-            raise McServerRunnerError("Workdir does not exist")
+        if not os.path.exists(self._current_dir):
+            raise McServerRunnerError("Current directory does not exist")
 
-        path = os.path.join(self._directory, "server_stats.json")
+        path = os.path.join(self._current_dir, "server_stats.json")
         tmp = path + ".tmp"
 
         self._server_stats.update(kwargs)
@@ -382,7 +382,7 @@ class McServerRunner:
                 self._events_queue.put_nowait(data)
 
     def _load_server_stats(self) -> dict:
-        path = os.path.join(self._directory, "server_stats.json")
+        path = os.path.join(self._current_dir, "server_stats.json")
 
         if not os.path.exists(path):
             return {}

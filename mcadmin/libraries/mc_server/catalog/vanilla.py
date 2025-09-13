@@ -2,17 +2,20 @@ import aiofiles
 import httpx
 import os
 import logging
-from .error import McServerDownloaderError
-from .base import BaseMcServerDownloader
+from .error import McServerCatalogError
+from .abstract import McServerSpecializedCatalog
 
-__all__ = ["VanillaServerDownloader"]
+__all__ = ["VanillaServerCatalog"]
 
 logger = logging.getLogger(__name__)
 
 
-class VanillaServerDownloader(BaseMcServerDownloader):
-    def __init__(self, directory: str, server_version: str, *, java_bin: str = "java") -> None:
-        self._directory: str = directory
+class VanillaServerCatalog(McServerSpecializedCatalog):
+    capabilities: list[str] = ["datapacks"]
+    link_paths: list[str] = []
+
+    def __init__(self, version_dir: str, server_version: str, *, java_bin: str = "java") -> None:
+        self._version_dir: str = version_dir
         self._server_version: str = server_version
         self._java_bin: str = java_bin
 
@@ -21,7 +24,7 @@ class VanillaServerDownloader(BaseMcServerDownloader):
     async def download(self) -> None:
         url = await self._get_download_url()
         filename = f"server-{self._server_version}.jar"
-        jar_path = os.path.join(self._directory, filename)
+        jar_path = os.path.join(self._version_dir, filename)
 
         async with httpx.AsyncClient(follow_redirects=True) as client:
             response = await client.get(url)
@@ -32,12 +35,9 @@ class VanillaServerDownloader(BaseMcServerDownloader):
 
     async def get_jvm_args(self) -> list[str]:
         filename = f"server-{self._server_version}.jar"
-        jar_path = os.path.join(self._directory, filename)
+        jar_path = os.path.join(self._version_dir, filename)
 
         return [f"-jar {jar_path}"]
-
-    def get_link_paths(self) -> list[str]:
-        return []
 
     async def _get_download_url(self) -> str:
         logger.info(f"Fetching versions index from {self._versions_index_url}")
@@ -51,7 +51,7 @@ class VanillaServerDownloader(BaseMcServerDownloader):
         version_info = next((v for v in versions_index["versions"] if v["id"] == self._server_version), None)
 
         if not version_info:
-            raise McServerDownloaderError(f"Server version {self._server_version} not found")
+            raise McServerCatalogError(f"Server version {self._server_version} not found")
 
         version_manifest_url = version_info["url"]
 

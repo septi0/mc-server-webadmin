@@ -1,17 +1,13 @@
 from abc import ABC, abstractmethod
 
-__all__ = ["BaseMcServerDownloader"]
+__all__ = ["McServerSpecializedCatalog"]
 
 
-class BaseMcServerDownloader(ABC):
+class McServerSpecializedCatalog(ABC):
     @abstractmethod
     async def download(self) -> None:
         pass
 
     @abstractmethod
     async def get_jvm_args(self) -> list[str]:
-        pass
-
-    @abstractmethod
-    def get_link_paths(self) -> list[str]:
         pass

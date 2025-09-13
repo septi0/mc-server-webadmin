@@ -6,14 +6,14 @@ from mcadmin.models.world_backups import WorldBackups
 from mcadmin.models.world_datapacks import WorldDatapacks
 from mcadmin.models.world_mods import WorldMods
 from mcadmin.services.server import ServerService
-from mcadmin.libraries.mc_server import McServerRunner, McWorldManager
+from mcadmin.libraries.mc_server import McServerRunner, McServerWorldManager
 
 
 class WorldsService:
-    def __init__(self, *, server_service: ServerService, mc_server_runner: McServerRunner, mc_world_manager: McWorldManager):
+    def __init__(self, *, server_service: ServerService, mc_server_runner: McServerRunner, mc_server_world_manager: McServerWorldManager):
         self._server_service: ServerService = server_service
         self._mc_server_runner: McServerRunner = mc_server_runner
-        self._mc_world_manager: McWorldManager = mc_world_manager
+        self._mc_server_world_manager: McServerWorldManager = mc_server_world_manager
 
         self._log_subscribers: list[asyncio.Queue] = []
 
@@ -21,7 +21,12 @@ class WorldsService:
         world = await Worlds.create(**kwargs)
 
         try:
-            await self._mc_world_manager.create_world_instance(str(world.id), world_archive=world_archive)
+            await self._mc_server_world_manager.create_world_instance(
+                str(world.id),
+                server_type=world.server_type,
+                server_version=world.server_version,
+                world_archive=world_archive,
+            )
         except Exception:
             await world.delete()
             raise
@@ -36,7 +41,7 @@ class WorldsService:
         if server_status == "running":
             await self._server_service.stop_server()
 
-        await self._mc_world_manager.activate_world_instance(
+        await self._mc_server_world_manager.activate_world_instance(
             str(world.id),
             server_version=world.server_version,
             server_type=world.server_type,
@@ -66,7 +71,7 @@ class WorldsService:
         if server_status == "running":
             await self._server_service.stop_server()
 
-        await self._mc_world_manager.activate_world_instance(
+        await self._mc_server_world_manager.activate_world_instance(
             str(world.id),
             server_version=world.server_version,
             server_type=world.server_type,
@@ -84,7 +89,7 @@ class WorldsService:
         if world.active and server_status == "running":
             await self._server_service.stop_server()
 
-        await self._mc_world_manager.delete_world_instance(str(world.id))
+        await self._mc_server_world_manager.delete_world_instance(str(world.id))
 
         # clean up related data
         await WorldBackups.filter(world_id=world.id).delete()
@@ -119,7 +124,7 @@ class WorldsService:
         if server_status == "running":
             await self._server_service.stop_server()
 
-        await self._mc_world_manager.regen_world_properties(str(active_world.id), properties=await self.gen_world_properties(active_world))
+        await self._mc_server_world_manager.regen_world_properties(str(active_world.id), properties=await self.gen_world_properties(active_world))
 
         if server_status == "running":
             await self._server_service.start_server()
@@ -144,7 +149,7 @@ class WorldsService:
         backup = await WorldBackups.create(world_id=world.id, type=backup_type, metadata=metadata)
 
         try:
-            await self._mc_world_manager.backup_world_instance(str(world.id), str(backup.id))
+            await self._mc_server_world_manager.backup_world_instance(str(world.id), str(backup.id))
         except Exception:
             await backup.delete()
             raise
@@ -156,16 +161,16 @@ class WorldsService:
 
         if world.active and server_status == "running":
             await self._server_service.stop_server()
-            
+
         world.update_from_dict(backup.metadata)
 
-        await self._mc_world_manager.restore_world_instance(str(world.id), str(backup.id))
+        await self._mc_server_world_manager.restore_world_instance(str(world.id), str(backup.id))
 
         if not world.active:
             await world.save()
             return
 
-        await self._mc_world_manager.activate_world_instance(
+        await self._mc_server_world_manager.activate_world_instance(
             str(world.id),
             server_version=world.server_version,
             server_type=world.server_type,
@@ -181,7 +186,7 @@ class WorldsService:
         return await WorldBackups.get_or_none(world_id=world.id, id=backup_id)
 
     async def delete_world_backup(self, world: Worlds, backup: WorldBackups) -> None:
-        await self._mc_world_manager.delete_world_instance_backup(str(world.id), str(backup.id))
+        await self._mc_server_world_manager.delete_world_instance_backup(str(world.id), str(backup.id))
         await backup.delete()
 
     async def list_world_datapacks(self, world: Worlds) -> list[WorldDatapacks]:
@@ -194,7 +199,7 @@ class WorldsService:
         datapack = await WorldDatapacks.create(world_id=world.id, **kwargs)
 
         try:
-            await self._mc_world_manager.add_world_instance_datapack(str(world.id), str(datapack.id), datapack_archive=datapack_archive)
+            await self._mc_server_world_manager.add_world_instance_datapack(str(world.id), str(datapack.id), datapack_archive=datapack_archive)
         except Exception:
             await datapack.delete()
             raise
@@ -202,7 +207,7 @@ class WorldsService:
         return datapack
 
     async def delete_world_datapack(self, world: Worlds, datapack: WorldDatapacks) -> None:
-        await self._mc_world_manager.delete_world_instance_datapack(str(world.id), str(datapack.id))
+        await self._mc_server_world_manager.delete_world_instance_datapack(str(world.id), str(datapack.id))
         await datapack.delete()
 
     async def list_world_mods(self, world: Worlds) -> list[WorldMods]:
@@ -215,7 +220,7 @@ class WorldsService:
         mod = await WorldMods.create(world_id=world.id, **kwargs)
 
         try:
-            await self._mc_world_manager.add_world_instance_mod(str(world.id), str(mod.id), mod_jar=mod_jar)
+            await self._mc_server_world_manager.add_world_instance_mod(str(world.id), str(mod.id), mod_jar=mod_jar)
         except Exception:
             await mod.delete()
             raise
@@ -223,20 +228,20 @@ class WorldsService:
         return mod
 
     async def delete_world_mod(self, world: Worlds, mod: WorldMods) -> None:
-        await self._mc_world_manager.delete_world_instance_mod(str(world.id), str(mod.id))
+        await self._mc_server_world_manager.delete_world_instance_mod(str(world.id), str(mod.id))
         await mod.delete()
 
     def get_level_types(self) -> list[str]:
-        return self._mc_world_manager.get_level_types()
+        return self._mc_server_world_manager.get_level_types()
 
     def get_min_server_version(self) -> str:
-        return self._mc_world_manager.get_min_server_version()
+        return self._mc_server_world_manager.get_min_server_version()
 
     def validate_properties(self, properties: dict) -> None:
-        self._mc_world_manager.validate_properties(properties)
+        self._mc_server_world_manager.validate_properties(properties)
 
     def get_server_types(self) -> dict:
-        return self._mc_world_manager.get_server_types()
+        return self._mc_server_world_manager.get_server_types()
 
     def server_capabilities(self, server_type: str) -> list[str]:
-        return self._mc_world_manager.server_capabilities(server_type)
+        return self._mc_server_world_manager.server_capabilities(server_type)

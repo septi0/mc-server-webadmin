@@ -47,8 +47,8 @@ class McServerPropertiesGenerator:
 
     min_server_version: str = "1.7.10"
 
-    def __init__(self, directory: str, *, server_ip: str, server_port: int, rcon_port: int) -> None:
-        self._directory: str = directory
+    def __init__(self, instance_dir: str, *, server_ip: str, server_port: int, rcon_port: int) -> None:
+        self._instance_dir: str = instance_dir
         self._enforced_properties: dict = {
             "server-port": str(server_port),
             "rcon.port": str(rcon_port),
@@ -60,7 +60,7 @@ class McServerPropertiesGenerator:
 
         self.validate_properties(properties)
 
-        properties_file = os.path.join(self._directory, "server.properties")
+        properties_file = os.path.join(self._instance_dir, "server.properties")
 
         if properties.get("rcon.password"):
             self._enforced_properties["enable-rcon"] = "true"
