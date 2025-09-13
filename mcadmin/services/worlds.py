@@ -152,6 +152,11 @@ class WorldsService:
         return backup
 
     async def restore_world(self, world: Worlds, backup: WorldBackups) -> None:
+        server_status = self._server_service.get_server_status()
+
+        if world.active and server_status == "running":
+            await self._server_service.stop_server()
+            
         world.update_from_dict(backup.metadata)
 
         await self._mc_world_manager.restore_world_instance(str(world.id), str(backup.id))
@@ -159,11 +164,6 @@ class WorldsService:
         if not world.active:
             await world.save()
             return
-
-        server_status = self._server_service.get_server_status()
-
-        if world.active and server_status == "running":
-            await self._server_service.stop_server()
 
         await self._mc_world_manager.activate_world_instance(
             str(world.id),
