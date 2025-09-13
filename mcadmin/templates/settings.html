@@ -198,9 +198,14 @@
             <li class="list-group-item" @click="openUpdateWorldModal(update_world_ref)" data-bs-dismiss="offcanvas" data-bs-target="#offcanvasWorldOptions">
                 <i class="bi bi-pencil-square me-2"></i>Edit World
             </li>
-            <li class="list-group-item">
+            <li class="list-group-item" :class="{ disabled: !update_world_ref.server_capabilities.includes('datapacks') }">
                 <a :href="`/worlds/${update_world_ref.id}/datapacks`" class="text-decoration-none text-reset d-block">
                     <i class="bi bi-box me-2"></i>World Datapacks
+                </a>
+            </li>
+            <li class="list-group-item" :class="{ disabled: !update_world_ref.server_capabilities.includes('mods') }">
+                <a :href="`/worlds/${update_world_ref.id}/mods`" class="text-decoration-none text-reset d-block">
+                    <i class="bi bi-gear me-2"></i>World Mods
                 </a>
             </li>
             <li class="list-group-item">

@@ -18,7 +18,6 @@
                     if (value instanceof File) {
                         form.append(key, value, value.name);
                     } else {
-                        console.log(value);
                         form.append(key, value);
                     }
                 }
