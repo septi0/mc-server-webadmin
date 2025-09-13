@@ -41,12 +41,7 @@ class WorldsService:
         if server_status == "running":
             await self._server_service.stop_server()
 
-        await self._mc_server_world_manager.activate_world_instance(
-            str(world.id),
-            server_version=world.server_version,
-            server_type=world.server_type,
-            properties=await self.gen_world_properties(world),
-        )
+        await self._provision_and_activate(world)
 
         await Worlds.filter(active=True).update(active=False)
         await world.save()
@@ -62,6 +57,12 @@ class WorldsService:
 
         world.update_from_dict(kwargs)
 
+        await self._mc_server_world_manager.update_world_instance(
+            str(world.id),
+            server_type=world.server_type,
+            server_version=world.server_version,
+        )
+
         if not world.active:
             await world.save()
             return
@@ -71,12 +72,7 @@ class WorldsService:
         if server_status == "running":
             await self._server_service.stop_server()
 
-        await self._mc_server_world_manager.activate_world_instance(
-            str(world.id),
-            server_version=world.server_version,
-            server_type=world.server_type,
-            properties=await self.gen_world_properties(world),
-        )
+        await self._provision_and_activate(world)
 
         await world.save()
 
@@ -124,7 +120,7 @@ class WorldsService:
         if server_status == "running":
             await self._server_service.stop_server()
 
-        await self._mc_server_world_manager.regen_world_properties(str(active_world.id), properties=await self.gen_world_properties(active_world))
+        await self._mc_server_world_manager.generate_world_properties(str(active_world.id), properties=await self.gen_world_properties(active_world))
 
         if server_status == "running":
             await self._server_service.start_server()
@@ -170,12 +166,7 @@ class WorldsService:
             await world.save()
             return
 
-        await self._mc_server_world_manager.activate_world_instance(
-            str(world.id),
-            server_version=world.server_version,
-            server_type=world.server_type,
-            properties=await self.gen_world_properties(world),
-        )
+        await self._provision_and_activate(world)
 
         await world.save()
 
@@ -245,3 +236,15 @@ class WorldsService:
 
     def server_capabilities(self, server_type: str) -> list[str]:
         return self._mc_server_world_manager.server_capabilities(server_type)
+
+    async def _provision_and_activate(self, world: Worlds) -> None:
+        await self._mc_server_world_manager.generate_world_properties(
+            str(world.id),
+            properties=await self.gen_world_properties(world),
+        )
+
+        await self._mc_server_world_manager.activate_world_instance(
+            str(world.id),
+            server_version=world.server_version,
+            server_type=world.server_type,
+        )

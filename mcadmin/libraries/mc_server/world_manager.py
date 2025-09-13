@@ -45,6 +45,7 @@ class McServerWorldManager:
         server_type: str,
         world_archive: BinaryIO | None = None,
     ) -> None:
+        """Create a new world instance with the given parameters"""
         instance_dir = self.get_instance_dir(world)
         server_catalog = self._server_catalog_factory(server_type, server_version)
 
@@ -59,26 +60,29 @@ class McServerWorldManager:
         if world_archive:
             await self._import_world(instance_dir, world_archive)
 
+        logger.info(f"World instance {world} created successfully")
+
+    async def update_world_instance(self, world: str, *, server_version: str, server_type: str) -> None:
+        """Update the server version for an existing world instance"""
+        server_catalog = self._server_catalog_factory(server_type, server_version)
+
+        await server_catalog.download()
+
+        logger.info(f"World instance {world} updated successfully")
+
     async def activate_world_instance(
         self,
         world: str,
         *,
         server_version: str,
         server_type: str,
-        properties: dict,
     ) -> None:
+        """Activate the given world instance, setting up server files and linking it to 'current'"""
         instance_dir = self.get_instance_dir(world, assert_exists=True)
         java_bin = self._get_java_bin(server_version)
         server_catalog = self._server_catalog_factory(server_type, server_version)
-        properties_generator = McServerPropertiesGenerator(
-            instance_dir,
-            server_ip=self._server_config.get("server_ip", self.default_server_ip),
-            server_port=self._server_config.get("server_port", self.default_server_port),
-            rcon_port=self._server_config.get("rcon_port", self.default_rcon_port),
-        )
 
         await server_catalog.download()
-        await properties_generator.generate(properties)
 
         jvm_args = await server_catalog.get_jvm_args()
         additional_links = server_catalog.get_link_paths()
@@ -90,7 +94,8 @@ class McServerWorldManager:
 
         logger.info(f"World instance {world} activated successfully")
 
-    async def regen_world_properties(self, world: str, properties: dict) -> None:
+    async def generate_world_properties(self, world: str, *, properties: dict) -> None:
+        """Regenerate the server.properties file for the given world instance"""
         instance_dir = self.get_instance_dir(world, assert_exists=True)
         properties_generator = McServerPropertiesGenerator(
             instance_dir,
@@ -102,6 +107,7 @@ class McServerWorldManager:
         await properties_generator.generate(properties)
 
     async def delete_world_instance(self, world: str) -> None:
+        """Delete the given world instance and all its data"""
         instance_dir = self.get_instance_dir(world, assert_exists=True)
 
         await asyncio.to_thread(shutil.rmtree, instance_dir)
@@ -109,6 +115,7 @@ class McServerWorldManager:
         logger.info(f"Directory for world instance {world} deleted")
 
     async def backup_world_instance(self, world: str, backup: str) -> None:
+        """Create a backup for the given world instance"""
         instance_dir = self.get_instance_dir(world, assert_exists=True)
         backups_dir = self._get_backup_dir(world)
         mc_backup = McServerBackup(instance_dir, backups_dir)
@@ -116,6 +123,7 @@ class McServerWorldManager:
         await mc_backup.backup(backup)
 
     async def restore_world_instance(self, world: str, backup: str) -> None:
+        """Restore a backup for the given world instance"""
         instance_dir = self.get_instance_dir(world, assert_exists=True)
         backups_dir = self._get_backup_dir(world)
         mc_backup = McServerBackup(instance_dir, backups_dir)
@@ -125,6 +133,7 @@ class McServerWorldManager:
         logger.info(f"World instance {world} restored from backup {backup}")
 
     async def delete_world_instance_backup(self, world: str, backup: str) -> None:
+        """Delete a backup for the given world instance"""
         instance_dir = self.get_instance_dir(world, assert_exists=True)
         backups_dir = self._get_backup_dir(world)
         mc_backup = McServerBackup(instance_dir, backups_dir)
@@ -132,39 +141,47 @@ class McServerWorldManager:
         await mc_backup.delete_backup(backup)
 
     async def add_world_instance_datapack(self, world: str, datapack_name: str, *, datapack_archive: BinaryIO) -> None:
+        """Add a datapack to the given world instance"""
         datapacks_dir = self._get_datapacks_dir(world)
         mc_datapack = McServerDatapack(datapacks_dir)
 
         await mc_datapack.add(datapack_name, datapack_archive=datapack_archive)
 
     async def delete_world_instance_datapack(self, world: str, datapack_name: str) -> None:
+        """Delete a datapack from the given world instance"""
         datapacks_dir = self._get_datapacks_dir(world)
         mc_datapack = McServerDatapack(datapacks_dir)
 
         await mc_datapack.delete(datapack_name)
 
     async def add_world_instance_mod(self, world: str, mod_name: str, *, mod_jar: BinaryIO) -> None:
+        """Add a mod to the given world instance"""
         mods_dir = self._get_mods_dir(world)
         mc_mod = McServerMod(mods_dir)
 
         await mc_mod.add(mod_name, mod_jar=mod_jar)
 
     async def delete_world_instance_mod(self, world: str, mod_name: str) -> None:
+        """Delete a mod from the given world instance"""
         mods_dir = self._get_mods_dir(world)
         mc_mod = McServerMod(mods_dir)
 
         await mc_mod.delete(mod_name)
 
     def validate_properties(self, properties: dict) -> None:
+        """Validate the given properties to ensure they conform to expected types and values for the server.properties file"""
         McServerPropertiesGenerator.validate_properties(properties)
 
     def get_level_types(self) -> list[str]:
+        """Get the list of supported world level types"""
         return McServerPropertiesGenerator.level_types
 
     def get_min_server_version(self) -> str:
+        """Get the minimum supported server version"""
         return McServerPropertiesGenerator.min_server_version
 
     def get_server_connect_info(self) -> dict:
+        """Get the server connection info (IP and port)"""
         info = {}
 
         display_host = self._server_config.get("display_host")
@@ -181,6 +198,7 @@ class McServerWorldManager:
         return info
 
     def get_rcon_connect_info(self) -> dict:
+        """Get the RCON connection info (IP and port)"""
         info = {}
 
         info["port"] = self._server_config.get("rcon_port", self.default_rcon_port)
@@ -189,9 +207,11 @@ class McServerWorldManager:
         return info
 
     def get_server_types(self) -> dict:
+        """Get the supported server types and their capabilities"""
         return McServerCatalog.server_types
 
     def server_capabilities(self, server_type: str) -> list[str]:
+        """Get the capabilities of the given server type"""
         return McServerCatalog.server_types.get(server_type, {}).get("capabilities", [])
 
     async def _import_world(self, instance_dir: str, world_archive: BinaryIO) -> None:
@@ -287,7 +307,7 @@ class McServerWorldManager:
         logger.info(f"Linking world instance {world} to 'current'")
 
         current_link = os.path.join(self._work_dir, "current")
-        instance_dir = self.get_instance_dir(world)
+        instance_dir = self.get_instance_dir(world, assert_exists=True)
 
         if os.path.islink(current_link) or os.path.exists(current_link):
             os.remove(current_link)

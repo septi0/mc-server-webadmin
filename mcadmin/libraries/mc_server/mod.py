@@ -24,6 +24,7 @@ class McServerMod:
         self._mods_dir: str = mods_dir
 
     async def add(self, mod_name: str, *, mod_jar: BinaryIO) -> None:
+        """Add a mod from a jar file"""
         if not os.path.exists(self._mods_dir):
             logger.info(f"Creating mods directory")
             os.makedirs(self._mods_dir)
@@ -37,6 +38,7 @@ class McServerMod:
         logger.info(f"Mod {mod_name} added")
 
     async def delete(self, mod_name: str) -> None:
+        """Delete a mod by name"""
         mod_file = os.path.join(self._mods_dir, f"{mod_name}.jar")
 
         if not os.path.exists(mod_file):

@@ -26,6 +26,7 @@ class McServerBackup:
         self._backups_dir: str = backups_dir
 
     async def backup(self, backup: str) -> None:
+        """Create a backup with the given name"""
         backup_dir = os.path.join(self._backups_dir, backup)
 
         if not os.path.exists(backup_dir):
@@ -45,6 +46,7 @@ class McServerBackup:
         logger.info(f"Successfully backed up data to {backup}")
 
     async def restore(self, backup: str) -> None:
+        """Restore a backup with the given name"""
         backup_dir = os.path.join(self._backups_dir, backup)
 
         if not os.path.exists(backup_dir):
@@ -60,6 +62,7 @@ class McServerBackup:
             await asyncio.to_thread(shutil.copytree, src_dir, dst_dir)
 
     async def delete_backup(self, backup: str) -> None:
+        """Delete a backup with the given name"""
         backup_dir = os.path.join(self._backups_dir, backup)
 
         if not os.path.exists(backup_dir):

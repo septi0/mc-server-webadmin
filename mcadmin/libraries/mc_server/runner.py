@@ -76,6 +76,7 @@ class McServerRunner:
         }
 
     async def run(self) -> None:
+        """Main runner loop. This should be run in a dedicated task."""
         logger.info("Starting MC server runner")
 
         # publish initial data
@@ -93,24 +94,28 @@ class McServerRunner:
                 raise
 
     async def start_server(self) -> bool:
+        """Start the Minecraft server"""
         evt = McServerRunnerEvent("start")
 
         await self._tasks_queue.put(evt)
         return await asyncio.wait_for(evt.reply, timeout=60)
 
     async def stop_server(self) -> bool:
+        """Stop the Minecraft server"""
         evt = McServerRunnerEvent("stop")
 
         await self._tasks_queue.put(evt)
         return await asyncio.wait_for(evt.reply, timeout=60)
 
     async def restart_server(self) -> bool:
+        """Restart the Minecraft server"""
         evt = McServerRunnerEvent("restart")
 
         await self._tasks_queue.put(evt)
         return await asyncio.wait_for(evt.reply, timeout=60)
 
     def get_server_status(self) -> str:
+        """Get the current server status"""
         if self._server_stats.get("started") and self._server_stats.get("initialized"):
             return "running"
         elif self._server_stats.get("started") and not self._server_stats.get("initialized"):
@@ -119,6 +124,7 @@ class McServerRunner:
         return "stopped"
 
     def get_server_stats(self) -> dict:
+        """Get the current server stats"""
         stats = {}
 
         stats["status"] = self.get_server_status()

@@ -56,6 +56,7 @@ class McServerPropertiesGenerator:
         }
 
     async def generate(self, properties: dict) -> None:
+        """Generate server.properties file with the given properties"""
         logger.info(f"Generating server.properties")
 
         self.validate_properties(properties)
@@ -76,6 +77,7 @@ class McServerPropertiesGenerator:
 
     @classmethod
     def validate_properties(cls, properties: dict) -> None:
+        """Validate the given properties to ensure they conform to expected types and values for the server.properties file"""
         for key, value in properties.items():
             if key not in cls.properties:
                 raise McServerPropertyError(f"Unknown property: {key}")

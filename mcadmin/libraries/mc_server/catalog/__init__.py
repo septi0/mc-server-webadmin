@@ -37,6 +37,7 @@ class McServerCatalog:
         self._version_dir = os.path.join(versions_dir, f"{self.server_type}-{self.server_version}")
 
     async def download(self, no_cache: bool = False) -> None:
+        """Download/setup the server environment"""
         logger.info(f"Attempting to download server version {self.server_version} ({self.server_type})")
 
         if os.path.exists(self._version_dir):
@@ -57,11 +58,13 @@ class McServerCatalog:
         return
 
     def get_link_paths(self) -> list[str]:
+        """Get the list of link paths needed for the server"""
         specialized_catalog = self._specialized_catalog_factory()
 
         return [os.path.join(self._version_dir, path) for path in specialized_catalog.link_paths]
 
     async def get_jvm_args(self) -> list[str]:
+        """Get the list of JVM arguments needed to launch the server"""
         specialized_catalog = self._specialized_catalog_factory()
         patcher = McServerPatcher(self._version_dir, self.server_version)
 

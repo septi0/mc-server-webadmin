@@ -8,15 +8,19 @@ __all__ = ["McServerPatcher"]
 
 logger = logging.getLogger(__name__)
 
+
 class McServerPatcher:
     def __init__(self, version_dir: str, server_version: str) -> None:
         self._version_dir: str = version_dir
         self._server_version: str = server_version
 
     async def patch(self) -> None:
+        """Apply necessary patches to the server installation"""
+        logger.info(f"Patching server version {self._server_version}")
         await self._patch_log4j()
 
     async def get_jvm_args(self) -> list[str]:
+        """Get additional JVM arguments needed for the server"""
         args = []
 
         args.extend(await self._get_log4j_jvm_args())

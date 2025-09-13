@@ -24,6 +24,7 @@ class McServerDatapack:
         self._datapacks_dir: str = datapacks_dir
 
     async def add(self, datapack_name: str, *, datapack_archive: BinaryIO) -> None:
+        """Add a datapack from a zip archive"""
         if not os.path.exists(self._datapacks_dir):
             logger.info(f"Creating datapacks directory")
             os.makedirs(self._datapacks_dir)
@@ -37,6 +38,7 @@ class McServerDatapack:
         logger.info(f"Datapack {datapack_name} added")
 
     async def delete(self, datapack_name: str) -> None:
+        """Delete a datapack by name"""
         datapack_file = os.path.join(self._datapacks_dir, f"{datapack_name}.zip")
 
         if not os.path.exists(datapack_file):
