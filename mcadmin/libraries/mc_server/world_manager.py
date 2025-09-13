@@ -37,6 +37,8 @@ class McServerWorldManager:
         self._work_dir: str = work_dir
         self._server_config: dict = server_config
 
+        self._link_paths: list[str] = ["banned-ips.json", "banned-players.json", "ops.json", "usercache.json", "whitelist.json"]
+
     async def create_world_instance(
         self,
         world: str,
@@ -233,13 +235,13 @@ class McServerWorldManager:
     async def _link_common_files(self, instance_dir: str, *, additional_links: list[str]) -> None:
         logger.info(f"Linking common files for world instance {instance_dir}")
 
-        common_files = ["banned-ips.json", "banned-players.json", "ops.json", "usercache.json", "whitelist.json"]
+        links = [os.path.join(self._work_dir, f) for f in self._link_paths] + additional_links
 
-        for file in common_files:
-            src = os.path.join(self._work_dir, file)
-            dst = os.path.join(instance_dir, file)
+        for src in links:
+            link_name = os.path.basename(src)
+            dst = os.path.join(instance_dir, link_name)
 
-            if not os.path.exists(src):
+            if not os.path.exists(src) and link_name.endswith(".json"):
                 async with aiofiles.open(src, "w") as f:
                     await f.write("[]")
 
@@ -248,17 +250,6 @@ class McServerWorldManager:
 
             os.symlink(src, dst)
             logger.info(f"Linked {src} to {dst}")
-
-        for src in additional_links:
-            link_name = os.path.basename(src)
-            dst = os.path.join(instance_dir, link_name)
-
-            if os.path.islink(dst):
-                os.unlink(dst)
-
-            if os.path.exists(src):
-                os.symlink(src, dst)
-                logger.info(f"Linked {src} to {dst}")
 
     async def _gen_start_script(self, instance_dir: str, jvm_args: list[str], *, java_bin: str) -> None:
         logger.info(f"Generating start script for world instance {instance_dir}")
@@ -309,7 +300,7 @@ class McServerWorldManager:
         current_link = os.path.join(self._work_dir, "current")
         instance_dir = self.get_instance_dir(world, assert_exists=True)
 
-        if os.path.islink(current_link) or os.path.exists(current_link):
+        if os.path.islink(current_link):
             os.remove(current_link)
 
         os.symlink(instance_dir, current_link)
