@@ -4,7 +4,9 @@ from aiohttp import web
 from aiohttp_session import get_session
 from mcadmin.utils.url import sanitize_url_path
 from mcadmin.utils.web import get_di
+from mcadmin.utils.validate import validate_data
 from mcadmin.services.users import UsersService
+from mcadmin.schemas.users import AuthSchema
 
 auth_routes = web.RouteTableDef()
 logger = logging.getLogger(__name__)
@@ -29,6 +31,12 @@ async def login_template(request: web.Request):
     username = str(post_data.get("username", ""))
     password = str(post_data.get("password", ""))
     next_url = sanitize_url_path(get_data.get("redirect", "/dashboard"))
+    
+    try:
+        validate_data(AuthSchema, {"username": username, "password": password})
+    except Exception as e:
+        data["message"] = ("danger", str(e))
+        return data
 
     user = await users_service.check_password(username, password)
 

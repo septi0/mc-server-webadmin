@@ -3,7 +3,7 @@ import aiohttp_jinja2
 from aiohttp import web
 from aiohttp_session import get_session
 from mcadmin.utils.web import get_di
-from mcadmin.utils.validate import validate_request_schema
+from mcadmin.utils.validate import validate_request
 from mcadmin.services.users import UsersService
 from mcadmin.services.sessions import SessionsService
 from mcadmin.schemas.users import UpdatePasswordSchema
@@ -71,7 +71,7 @@ async def user_session_delete(request: web.Request):
 
 
 @user_routes.post("/api/self/update")
-@validate_request_schema(UpdatePasswordSchema)
+@validate_request(UpdatePasswordSchema)
 async def user_update(request: web.Request):
     users_service: UsersService = get_di(request).users_service
 

@@ -2,7 +2,7 @@ import logging
 import aiohttp_jinja2
 from aiohttp import web
 from mcadmin.utils.web import get_di
-from mcadmin.utils.validate import require_roles, validate_request_schema
+from mcadmin.utils.validate import require_roles, validate_request
 from mcadmin.services.users import UsersService
 from mcadmin.schemas.users import CreateUserSchema, UpdateUserSchema
 
@@ -50,7 +50,7 @@ async def admin_users_get(request: web.Request):
 
 @admin_routes.post("/api/admin/users")
 @require_roles(["admin"])
-@validate_request_schema(CreateUserSchema)
+@validate_request(CreateUserSchema)
 async def admin_user_create(request: web.Request):
     users_service: UsersService = get_di(request).users_service
 
@@ -72,7 +72,7 @@ async def admin_user_create(request: web.Request):
 
 @admin_routes.post("/api/admin/users/{user_id}")
 @require_roles(["admin"])
-@validate_request_schema(UpdateUserSchema)
+@validate_request(UpdateUserSchema)
 async def admin_user_update(request: web.Request):
     users_service: UsersService = get_di(request).users_service
 

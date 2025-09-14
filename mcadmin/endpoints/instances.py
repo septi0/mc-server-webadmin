@@ -3,7 +3,7 @@ import json
 from aiohttp import web
 from packaging import version
 from mcadmin.utils.web import get_di
-from mcadmin.utils.validate import validate_request_schema
+from mcadmin.utils.validate import validate_request
 from mcadmin.services.instances import InstancesService
 from mcadmin.schemas.instances import CreateInstanceSchema, UpdateInstanceSchema
 
@@ -62,7 +62,7 @@ async def active_instance_get(request: web.Request):
 
 
 @instances_routes.post("/api/instances")
-@validate_request_schema(CreateInstanceSchema)
+@validate_request(CreateInstanceSchema)
 async def instance_create(request: web.Request):
     instances_service: InstancesService = get_di(request).instances_service
 
@@ -104,7 +104,7 @@ async def instance_create(request: web.Request):
 
 
 @instances_routes.post("/api/instances/{instance_id}")
-@validate_request_schema(UpdateInstanceSchema)
+@validate_request(UpdateInstanceSchema)
 async def instance_update(request: web.Request):
     instances_service: InstancesService = get_di(request).instances_service
 

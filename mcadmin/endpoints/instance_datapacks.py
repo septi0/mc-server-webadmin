@@ -3,7 +3,7 @@ import aiohttp_jinja2
 from aiohttp import web
 from mcadmin.utils.web import get_di, get_filename
 from mcadmin.services.instances import InstancesService
-from mcadmin.utils.validate import validate_request_schema
+from mcadmin.utils.validate import validate_request
 from mcadmin.schemas.instances import AddInstanceDatapackSchema
 
 instance_datapacks_routes = web.RouteTableDef()
@@ -65,7 +65,7 @@ async def instance_datapacks_get(request: web.Request):
 
 
 @instance_datapacks_routes.post("/api/instances/{instance_id}/datapacks")
-@validate_request_schema(AddInstanceDatapackSchema)
+@validate_request(AddInstanceDatapackSchema)
 async def instance_datapack_add(request: web.Request):
     instances_service: InstancesService = get_di(request).instances_service
 

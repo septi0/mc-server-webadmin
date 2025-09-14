@@ -4,7 +4,7 @@ from typing import Optional
 
 class UpdatePasswordSchema(BaseModel):
     current_password: str = Field(title="Current Password")
-    new_password: str = Field(title="New Password", min_length=6)
+    new_password: str = Field(title="New Password", min_length=6, max_length=100)
     new_password_confirm: str = Field(title="Confirm New Password")
 
     @model_validator(mode="after")
@@ -15,10 +15,14 @@ class UpdatePasswordSchema(BaseModel):
 
 class CreateUserSchema(BaseModel):
     username: str = Field(title="Username", min_length=3, max_length=100)
-    password: str = Field(title="Password", min_length=6)
+    password: str = Field(title="Password", min_length=6, max_length=100)
     role: str = Field(title="Role", default="user")
 
 class UpdateUserSchema(BaseModel):
     id: str = Field(title="User ID")
-    password: Optional[str] = Field(default=None, title="Password", min_length=6)
+    password: Optional[str] = Field(default=None, title="Password", min_length=6, max_length=100)
     role: str = Field(title="Role", default="user")
+    
+class AuthSchema(BaseModel):
+    username: str = Field(title="Username", min_length=3, max_length=100)
+    password: str = Field(title="Password", min_length=6, max_length=100)
