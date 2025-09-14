@@ -19,8 +19,8 @@
                         <p>${message}</p>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="button" id="confirm-ok-btn" class="btn btn-primary">Confirm</button>
+                        <button type="button" class="btn btn-secondary flex-fill flex-lg-grow-0" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" id="confirm-ok-btn" class="btn btn-primary flex-fill flex-lg-grow-0">Confirm</button>
                     </div>
                 </div>
             </div>
