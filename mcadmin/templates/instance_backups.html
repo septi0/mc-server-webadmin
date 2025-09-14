@@ -11,13 +11,13 @@
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <div class="d-flex align-items-center gap-2">
-                    <span class="fw-semibold"><i class="bi bi-clock-history me-2"></i>Last backup:</span>
+                    <span class="fw-semibold"><i class="bi bi-cloud-arrow-up me-2"></i>Last backup:</span>
                     <span class="badge text-bg-secondary" v-text="last_backup_dt ? $formatLocalDate(last_backup_dt) : '-'"></span>
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <button class="btn btn-outline-primary btn-sm" @click="createBackup()" :disabled="creating_backup">
                         <div class="spinner-border spinner-border-sm me-1" v-if="creating_backup" v-cloak></div>
-                        <i class="bi bi-save me-1" v-else></i>
+                        <i class="bi bi-plus-lg me-1" v-else></i>
                         Backup Now
                     </button>
                 </div>

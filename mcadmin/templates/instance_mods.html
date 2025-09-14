@@ -72,8 +72,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button class="btn btn-primary" :disabled="!add_mod_form || adding_mod">
+                    <button type="button" class="btn btn-outline-secondary flex-fill flex-lg-grow-0" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary flex-fill flex-lg-grow-0" :disabled="!add_mod_form || adding_mod">
                         <div class="spinner-border spinner-border-sm me-1" v-if="adding_mod" v-cloak></div>
                         <i class="bi bi-check2-circle me-1" v-else></i>
                         Add Mod

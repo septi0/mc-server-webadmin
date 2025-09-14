@@ -70,7 +70,7 @@ async def admin_user_create(request: web.Request):
     return web.json_response({"status": "success", "message": "User created successfully"})
 
 
-@admin_routes.post("/api/users/{user_id}")
+@admin_routes.post("/api/admin/users/{user_id}")
 @require_roles(["admin"])
 @validate_request_schema(UpdateUserSchema)
 async def admin_user_update(request: web.Request):

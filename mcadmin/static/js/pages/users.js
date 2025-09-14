@@ -13,6 +13,7 @@
             update_user_form: {},
             update_user_ref: null,
             creating_user: false,
+            updating_user: false,
         }),
 
         async created() {
@@ -55,13 +56,14 @@
 
             async updateUser() {
                 try {
-                    this.update_user_modal.hide();
-
+                    this.updating_user = true;
                     this.update_user_ref.pending = true;
 
                     const response = await api.updateUser(this.update_user_form.id, this.update_user_form);
 
                     notify.success(response.message);
+
+                    this.update_user_modal.hide();
                     this.setUpdateUserRef(null);
 
                     await this.fetchUsers();
@@ -69,6 +71,8 @@
                     this.update_user_ref.pending = false;
                     
                     notify.error(error.message);
+                } finally {
+                    this.updating_user = false;
                 }
             },
 

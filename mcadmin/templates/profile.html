@@ -51,16 +51,18 @@
                         <div class="form-text text-danger" id="pw_hint"></div>
                     </div>
 
-                    <div class="col-12">
-                        <button class="btn btn-primary" :disabled="updating_password">
-                            <div class="spinner-border spinner-border-sm me-1" v-if="updating_password" v-cloak></div>
-                            <i class="bi bi-check2-circle me-1" v-else></i>
-                            Update Password
-                        </button>
-                    </div>
-
                     <div class="col-12 text-muted small">
                         Password must be at least 6 characters
+                    </div>
+
+                    <div class="col-12">
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-primary flex-fill flex-lg-grow-0" :disabled="updating_password">
+                                <div class="spinner-border spinner-border-sm me-1" v-if="updating_password" v-cloak></div>
+                                <i class="bi bi-check2-circle me-1" v-else></i>
+                                Update Password
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>

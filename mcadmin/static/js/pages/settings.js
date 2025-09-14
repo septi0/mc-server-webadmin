@@ -132,7 +132,6 @@
             async updateInstance() {
                 try {
                     this.updating_instance = true;
-
                     this.update_instance_ref.pending = true;
 
                     const response = await api.updateInstance(this.update_instance_form.id, this.update_instance_form);

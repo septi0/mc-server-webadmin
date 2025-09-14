@@ -11,7 +11,7 @@
     <div class="card-header d-flex justify-content-between align-items-start">
         <span class="fw-semibold"><i class="bi bi-people me-2"></i>Users</span>
         <button class="btn btn-outline-primary btn-sm" @click="openCreateUserModal">
-            <i class="bi bi-person-plus me-1"></i>Create User
+            <i class="bi bi-plus-lg me-1"></i>Create User
         </button>
     </div>
 
@@ -47,7 +47,7 @@
                 </li>
             </ul>
             <div class="text-muted text-center m-3" v-if="users !== null && users.length === 0" v-cloak>
-                No users created yet. Click the "<i class="bi bi-person-plus me-1"></i>Create User" button to add one.
+                No users created yet. Click the "<i class="bi bi-plus-lg me-1"></i>Create User" button to add one.
             </div>
         </div>
     </div>
@@ -60,7 +60,7 @@
             <form action="#" autocomplete="off" @submit.prevent="createUser">
                 <div class="modal-header">
                     <h5 class="modal-title" id="createUserModalLabel">
-                        <i class="bi bi-person-plus me-2"></i>Create User
+                        <i class="bi bi-magic me-2"></i>Create User
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -87,8 +87,12 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button class="btn btn-primary"><i class="bi bi-check2-circle me-1"></i>Create User</button>
+                    <button type="button" class="btn btn-outline-secondary flex-fill flex-lg-grow-0" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary flex-fill flex-lg-grow-0" :disabled="creating_user">
+                        <div class="spinner-border spinner-border-sm me-1" v-if="creating_user" v-cloak></div>
+                        <i class="bi bi-check2-circle me-1" v-else></i>
+                        Create User
+                    </button>
                 </div>
             </form>
         </div>
@@ -101,7 +105,7 @@
         <div class="modal-content">
             <form action="#" autocomplete="off" @submit.prevent="updateUser">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="updateUserModalLabel"><i class="bi bi-gear me-2"></i>Update User</h5>
+                    <h5 class="modal-title" id="updateUserModalLabel"><i class="bi bi-magic me-2"></i>Update User</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
@@ -128,8 +132,12 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-                    <button class="btn btn-primary"><i class="bi bi-save me-1"></i>Update User</button>
+                    <button type="button" class="btn btn-outline-secondary flex-fill flex-lg-grow-0" data-bs-dismiss="modal">Close</button>
+                    <button class="btn btn-primary flex-fill flex-lg-grow-0" :disabled="updating_user">
+                        <div class="spinner-border spinner-border-sm me-1" v-if="updating_user" v-cloak></div>
+                        <i class="bi bi-check2-circle me-1" v-else></i>
+                        Update User
+                    </button>
                 </div>
             </form>
         </div>
