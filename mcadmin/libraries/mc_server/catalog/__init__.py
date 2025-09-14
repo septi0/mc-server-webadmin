@@ -44,8 +44,6 @@ class McServerCatalog:
             if not no_cache:
                 logger.info(f"Server version {self.server_version} ({self.server_type}) already exists, skipping download")
                 return
-        else:
-            os.makedirs(self._version_dir)
 
         specialized_catalog = self._specialized_catalog_factory()
         patcher = McServerPatcher(self._version_dir, self.server_version)

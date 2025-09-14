@@ -26,6 +26,9 @@ class VanillaServerCatalog(McServerSpecializedCatalog):
         filename = f"server-{self._server_version}.jar"
         jar_path = os.path.join(self._version_dir, filename)
 
+        if not os.path.exists(self._version_dir):
+            os.makedirs(self._version_dir)
+
         async with httpx.AsyncClient(follow_redirects=True) as client:
             response = await client.get(url)
             response.raise_for_status()

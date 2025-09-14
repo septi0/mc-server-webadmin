@@ -299,11 +299,12 @@
                     </div>
                 </div>
                 <div class="modal-footer">
+                    <div class="text-danger flex-grow-1" v-if="creating_instance">Creating instance, this may take a while. Please wait...</div>
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button class="btn btn-primary" :disabled="creating_instance">
                         <div class="spinner-border spinner-border-sm me-1" v-if="creating_instance" v-cloak></div>
                         <i class="bi bi-check2-circle me-1" v-else></i>
-                        Create
+                        Create Instance
                     </button>
                 </div>
             </form>
@@ -313,7 +314,7 @@
 
 <!-- Update Instance Modal -->
 <div class="modal fade" ref="update_instance_modal" tabindex="-1" aria-labelledby="updateInstanceModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <form action="#" autocomplete="off" @submit.prevent="updateInstance">
                 <div class="modal-header">
@@ -334,8 +335,13 @@
                     </div>
                 </div>
                 <div class="modal-footer">
+                    <div class="text-danger flex-grow-1" v-if="updating_instance">Updating instance, this may take a while. Please wait...</div>
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-                    <button class="btn btn-primary"><i class="bi bi-save me-1"></i>Update</button>
+                    <button class="btn btn-primary" :disabled="updating_instance">
+                        <div class="spinner-border spinner-border-sm me-1" v-if="updating_instance" v-cloak></div>
+                        <i class="bi bi-check2-circle me-1" v-else></i>
+                        Update Instance
+                    </button>
                 </div>
             </form>
         </div>

@@ -73,6 +73,9 @@ class ForgeServerCatalog(McServerSpecializedCatalog):
 
     async def _run_installer(self) -> None:
         logger.info(f"Running Forge installer")
+        
+        if not os.path.exists(self._version_dir):
+            os.makedirs(self._version_dir)
 
         process = await asyncio.create_subprocess_exec(
             self._java_bin,

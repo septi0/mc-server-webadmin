@@ -16,6 +16,7 @@
             update_instance_form: {},
             update_instance_ref: null,
             creating_instance: false,
+            updating_instance: false,
             updating_server_status: false,
             updating_global_properties: false,
             activating_instance: false,
@@ -130,7 +131,7 @@
 
             async updateInstance() {
                 try {
-                    this.update_instance_modal.hide();
+                    this.updating_instance = true;
 
                     this.update_instance_ref.pending = true;
 
@@ -146,6 +147,8 @@
                     this.update_instance_ref.pending = false;
 
                     notify.error(`Error updating instance: ${error.message}`);
+                } finally {
+                    this.updating_instance = false;
                 }
             },
 
