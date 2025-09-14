@@ -12,7 +12,7 @@ from mcadmin.utils.random import random_password
 from mcadmin.libraries.cleanup_queue import CleanupQueue
 from mcadmin.libraries.di_container import DiContainer
 from mcadmin.services.users import UsersService
-from mcadmin.services.worlds import WorldsService
+from mcadmin.services.instances import InstancesService
 from mcadmin.setup_web_server import setup_web_server
 from mcadmin.setup_di import setup_di
 from mcadmin.exceptions import (
@@ -306,8 +306,8 @@ class McServerWebadminManager:
         logger.info(f"Created default admin user. Username: {username}, Password: {password}")
 
     async def _ensure_rcon_password(self):
-        worlds_service: WorldsService = self._di.worlds_service
-        rcon_pass = await worlds_service.get_property("rcon.password")
+        instances_service: InstancesService = self._di.instances_service
+        rcon_pass = await instances_service.get_property("rcon.password")
 
         if rcon_pass:
             return
@@ -316,4 +316,4 @@ class McServerWebadminManager:
 
         password = random_password(24)
 
-        await worlds_service.set_property("rcon.password", password)
+        await instances_service.set_property("rcon.password", password)

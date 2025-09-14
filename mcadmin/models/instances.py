@@ -1,6 +1,6 @@
 from tortoise import fields, models
 
-class Worlds(models.Model):
+class Instances(models.Model):
     id = fields.IntField(pk=True)
     name = fields.CharField(max_length=100, unique=True)
     server_version = fields.CharField(max_length=50)
@@ -11,7 +11,7 @@ class Worlds(models.Model):
     updated_at = fields.DatetimeField(auto_now=True)
 
     class Meta:
-        table = "worlds"
+        table = "instances"
 
     def __str__(self):
         return self.name

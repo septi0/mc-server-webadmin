@@ -1,9 +1,9 @@
 {% extends "layout.html" %}
-{% block title %}World Backups{% endblock %}
+{% block title %}Instance Backups{% endblock %}
 
 {% block content %}
 
-<h2 class="mb-3">{{ world.name }} - Backups</h2>
+<h2 class="mb-3">{{ instance.name }} - Backups</h2>
 <p class="text-muted">Create a new backup or restore/delete existing ones.</p>
 
 <div class="row g-3">
@@ -25,7 +25,7 @@
 
             <div class="card-body p-0">
                 <ul class="list-group list-group-flush">
-                    <li class="list-group-item" v-for="b in world_backups" v-cloak>
+                    <li class="list-group-item" v-for="b in instance_backups" v-cloak>
                         <div class="row-loading-overlay" v-if="b.pending">
                             <div class="spinner-border text-primary" role="status">
                                 <span class="visually-hidden">Loading...</span>
@@ -36,7 +36,7 @@
                                 <div class="fw-semibold">
                                     <span v-text="$formatLocalDate(b.created_at)"></span>
                                 </div>
-                                <div class="text-muted small">Version: <strong v-text="b.metadata.server_version"></strong></div>
+                                <div class="text-muted small">Version: <strong v-text="b.server_version"></strong></div>
                                 <div class="text-muted small">Type: <strong v-text="b.type"></strong></div>
                             </div>
                             <div class="d-flex flex-wrap gap-2 list-item-actions">
@@ -53,7 +53,7 @@
                         </div>
                     </li>
                 </ul>
-                <div class="text-muted text-center m-3" v-if="world_backups !== null && world_backups.length === 0" v-cloak>
+                <div class="text-muted text-center m-3" v-if="instance_backups !== null && instance_backups.length === 0" v-cloak>
                     No backups created yet. Click the "<i class="bi bi-plus-lg me-1"></i>Backup Now" button to create one.
                 </div>
             </div>
@@ -65,5 +65,5 @@
 
 {% block scripts %}
 {{ super() }}
-<script src="/static/js/pages/world_backups.js?v={{ build_version }}"></script>
+<script src="/static/js/pages/instance_backups.js?v={{ build_version }}"></script>
 {% endblock %}

@@ -6,8 +6,8 @@
     createApp({
         data: () => ({
             loaded: false,
-            world_id: null,
-            world_mods: null,
+            instance_id: null,
+            instance_mods: null,
             add_mod_modal: null,
             add_mod_form: {},
             adding_mod: false,
@@ -15,10 +15,10 @@
 
         async created() {
             const path_parts = window.location.pathname.split('/');
-            this.world_id = path_parts[path_parts.length - 2];
+            this.instance_id = path_parts[path_parts.length - 2];
 
             try {
-                await this.fetchWorldMods();
+                await this.fetchInstanceMods();
             } catch (error) {
                 notify.error(`Error fetching initial data: ${error.message}`);
             } finally {
@@ -31,23 +31,23 @@
         },
 
         methods: {
-            async fetchWorldMods() {
-                this.world_mods = await api.getWorldMods(this.world_id);
+            async fetchInstanceMods() {
+                this.instance_mods = await api.getInstanceMods(this.instance_id);
             },
 
             async addMod() {
                 try {
                     this.adding_mod = true;
 
-                    const response = await api.addWorldMod(this.world_id, this.add_mod_form);
+                    const response = await api.addInstanceMod(this.instance_id, this.add_mod_form);
 
                     notify.success(response.message);
 
                     this.add_mod_modal.hide();
 
-                    await this.fetchWorldMods();
+                    await this.fetchInstanceMods();
                 } catch (error) {
-                    notify.error(`Error adding world mod: ${error.message}`);
+                    notify.error(`Error adding instance mod: ${error.message}`);
                 } finally {
                     this.adding_mod = false;
                 }
@@ -61,11 +61,11 @@
                 try {
                     mod.pending = true;
 
-                    const response = await api.deleteWorldMod(this.world_id, mod.id);
+                    const response = await api.deleteInstanceMod(this.instance_id, mod.id);
 
                     notify.success(response.message);
 
-                    await this.fetchWorldMods();
+                    await this.fetchInstanceMods();
                 } catch (error) {
                     mod.pending = false;
 

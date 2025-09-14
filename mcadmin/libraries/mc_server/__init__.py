@@ -1,7 +1,7 @@
 from .runner import McServerRunner
-from .world_manager import McServerWorldManager
+from .instances_manager import McServerInstMgr
 
 __all__ = [
     "McServerRunner",
-    "McServerWorldManager",
+    "McServerInstMgr",
 ]

@@ -1,17 +1,17 @@
 from .users import Users
 from .sessions import Sessions
-from .worlds import Worlds
+from .instances import Instances
 from .global_properties import GlobalProperties
-from .world_backups import WorldBackups
-from .world_datapacks import WorldDatapacks
-from .world_mods import WorldMods
+from .instance_backups import InstanceBackups
+from .instance_datapacks import InstanceDatapacks
+from .instance_mods import InstanceMods
 
 __all__ = [
     "Users",
     "Sessions",
-    "Worlds",
+    "Instances",
     "GlobalProperties",
-    "WorldBackups",
-    "WorldDatapacks",
-    "WorldMods",
+    "InstanceBackups",
+    "InstanceDatapacks",
+    "InstanceMods",
 ]

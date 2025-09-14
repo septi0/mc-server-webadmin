@@ -18,7 +18,7 @@ class McServerModError(Exception):
 
 
 class McServerMod:
-    """Low level Minecraft world mod manager"""
+    """Low level Minecraft server mod manager"""
 
     def __init__(self, mods_dir: str) -> None:
         self._mods_dir: str = mods_dir

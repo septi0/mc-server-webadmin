@@ -104,7 +104,7 @@ html, body {
         height: 420px;
     }
 
-    .worlds-panel {
+    .instances-panel {
         height: calc(420px - 3.5rem - 1px);
         overflow: auto;
     }
@@ -188,6 +188,6 @@ html, body {
     padding: 10px 6px;
 }
 
-#offcanvasWorldOptions {
+#offcanvasInstanceOptions {
     height: auto;
 }

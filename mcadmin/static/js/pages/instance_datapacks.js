@@ -6,8 +6,8 @@
     createApp({
         data: () => ({
             loaded: false,
-            world_id: null,
-            world_datapacks: null,
+            instance_id: null,
+            instance_datapacks: null,
             add_datapack_modal: null,
             add_datapack_form: {},
             adding_datapack: false,
@@ -15,10 +15,10 @@
 
         async created() {
             const path_parts = window.location.pathname.split('/');
-            this.world_id = path_parts[path_parts.length - 2];
+            this.instance_id = path_parts[path_parts.length - 2];
 
             try {
-                await this.fetchWorldDatapacks();
+                await this.fetchInstanceDatapacks();
             } catch (error) {
                 notify.error(`Error fetching initial data: ${error.message}`);
             } finally {
@@ -31,23 +31,23 @@
         },
 
         methods: {
-            async fetchWorldDatapacks() {
-                this.world_datapacks = await api.getWorldDatapacks(this.world_id);
+            async fetchInstanceDatapacks() {
+                this.instance_datapacks = await api.getInstanceDatapacks(this.instance_id);
             },
 
             async addDatapack() {
                 try {
                     this.adding_datapack = true;
 
-                    const response = await api.addWorldDatapack(this.world_id, this.add_datapack_form);
+                    const response = await api.addInstanceDatapack(this.instance_id, this.add_datapack_form);
 
                     notify.success(response.message);
 
                     this.add_datapack_modal.hide();
 
-                    await this.fetchWorldDatapacks();
+                    await this.fetchInstanceDatapacks();
                 } catch (error) {
-                    notify.error(`Error adding world datapack: ${error.message}`);
+                    notify.error(`Error adding instance datapack: ${error.message}`);
                 } finally {
                     this.adding_datapack = false;
                 }
@@ -61,11 +61,11 @@
                 try {
                     datapack.pending = true;
 
-                    const response = await api.deleteWorldDatapack(this.world_id, datapack.id);
+                    const response = await api.deleteInstanceDatapack(this.instance_id, datapack.id);
 
                     notify.success(response.message);
 
-                    await this.fetchWorldDatapacks();
+                    await this.fetchInstanceDatapacks();
                 } catch (error) {
                     datapack.pending = false;
 

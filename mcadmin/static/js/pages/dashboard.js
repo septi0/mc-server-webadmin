@@ -8,7 +8,7 @@
             loaded: false,
             server_stats: {},
             server_info: {},
-            world_info: {},
+            instance_info: {},
             updating_server_status: false,
             uptime: null,
             uptime_interval: null,
@@ -22,7 +22,7 @@
             try {
                 await Promise.all([
                     this.fetchServerInfo(),
-                    this.fetchActiveWorldInfo(),
+                    this.fetchActiveInstanceInfo(),
                     this.subscribeToServerStats(),
                 ]);
             } catch (error) {
@@ -45,8 +45,8 @@
                 }
             },
 
-            async fetchActiveWorldInfo() {
-                this.world_info = await api.getActiveWorldInfo();
+            async fetchActiveInstanceInfo() {
+                this.instance_info = await api.getActiveInstanceInfo();
             },
 
             async subscribeToServerStats() {

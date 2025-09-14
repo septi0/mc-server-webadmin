@@ -18,7 +18,7 @@ class McServerDatapackError(Exception):
 
 
 class McServerDatapack:
-    """Low level Minecraft world datapack manager"""
+    """Low level Minecraft server datapack manager"""
 
     def __init__(self, datapacks_dir: str) -> None:
         self._datapacks_dir: str = datapacks_dir

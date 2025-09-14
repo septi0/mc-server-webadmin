@@ -7,8 +7,8 @@ server_version_pattern = r"^(?:\d+\.\d+(?:\.\d+)?(?:-(?:pre|rc)\d+)?|\d{2}w\d{2}
 zip_signatures = [b'PK\x03\x04', b'PK\x05\x06', b'PK\x07\x08']
 
 
-class CreateWorldSchema(BaseModel):
-    name: str = Field(title="World Name", max_length=30)
+class CreateInstanceSchema(BaseModel):
+    name: str = Field(title="Instance Name", max_length=30)
     server_version: str = Field(title="Server Version")
     world_archive: Optional[Any] = None
 
@@ -35,8 +35,8 @@ class CreateWorldSchema(BaseModel):
         
         return v
 
-class UpdateWorldSchema(BaseModel):
-    id: str = Field(title="World ID")
+class UpdateInstanceSchema(BaseModel):
+    id: str = Field(title="Instance ID")
     server_version: str = Field(title="Server Version")
 
     @field_validator("server_version")
@@ -47,7 +47,7 @@ class UpdateWorldSchema(BaseModel):
         return v
 
 
-class AddWorldDatapackSchema(BaseModel):
+class AddInstanceDatapackSchema(BaseModel):
     datapack_archive: Any
 
     @field_validator("datapack_archive")
@@ -63,7 +63,7 @@ class AddWorldDatapackSchema(BaseModel):
 
         return v
 
-class AddWorldModSchema(BaseModel):
+class AddInstanceModSchema(BaseModel):
     mod_jar: Any
 
     @field_validator("mod_jar")

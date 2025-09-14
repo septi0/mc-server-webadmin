@@ -92,28 +92,28 @@
             return this.fetch(`admin/users/${user_id}`, "DELETE");
         },
 
-        async getWorlds() {
-            return this.fetch("worlds");
+        async getInstances() {
+            return this.fetch("instances");
         },
 
-        async getActiveWorldInfo() {
-            return this.fetch("worlds/active");
+        async getActiveInstanceInfo() {
+            return this.fetch("instances/active");
         },
 
-        async createWorld(data) {
-            return this.fetch("worlds", "POST", data);
+        async createInstance(data) {
+            return this.fetch("instances", "POST", data);
         },
 
-        async activateWorld(world_id) {
-            return this.fetch(`worlds/${world_id}/activate`, "POST");
+        async activateInstance(instance_id) {
+            return this.fetch(`instances/${instance_id}/activate`, "POST");
         },
 
-        async updateWorld(world_id, data) {
-            return this.fetch(`worlds/${world_id}`, "POST", data);
+        async updateInstance(instance_id, data) {
+            return this.fetch(`instances/${instance_id}`, "POST", data);
         },
 
-        async deleteWorld(world_id) {
-            return this.fetch(`worlds/${world_id}`, "DELETE");
+        async deleteInstance(instance_id) {
+            return this.fetch(`instances/${instance_id}`, "DELETE");
         },
 
         async getGlobalProperties() {
@@ -124,44 +124,44 @@
             return this.fetch("global-properties", "POST", data);
         },
 
-        async getWorldBackups(world_id) {
-            return this.fetch(`worlds/${world_id}/backups`);
+        async getInstanceBackups(instance_id) {
+            return this.fetch(`instances/${instance_id}/backups`);
         },
 
-        async createWorldBackup(world_id) {
-            return this.fetch(`worlds/${world_id}/backups`, "POST");
+        async createInstanceBackup(instance_id) {
+            return this.fetch(`instances/${instance_id}/backups`, "POST");
         },
 
-        async restoreWorldBackup(world_id, backup_id) {
-            return this.fetch(`worlds/${world_id}/backups/${backup_id}/restore`, "POST");
+        async restoreInstanceBackup(instance_id, backup_id) {
+            return this.fetch(`instances/${instance_id}/backups/${backup_id}/restore`, "POST");
         },
 
-        async deleteWorldBackup(world_id, backup_id) {
-            return this.fetch(`worlds/${world_id}/backups/${backup_id}`, "DELETE");
+        async deleteInstanceBackup(instance_id, backup_id) {
+            return this.fetch(`instances/${instance_id}/backups/${backup_id}`, "DELETE");
         },
 
-        async getWorldDatapacks(world_id) {
-            return this.fetch(`worlds/${world_id}/datapacks`);
+        async getInstanceDatapacks(instance_id) {
+            return this.fetch(`instances/${instance_id}/datapacks`);
         },
 
-        async addWorldDatapack(world_id, data) {
-            return this.fetch(`worlds/${world_id}/datapacks`, "POST", data);
+        async addInstanceDatapack(instance_id, data) {
+            return this.fetch(`instances/${instance_id}/datapacks`, "POST", data);
         },
 
-        async deleteWorldDatapack(world_id, datapack_id) {
-            return this.fetch(`worlds/${world_id}/datapacks/${datapack_id}`, "DELETE");
+        async deleteInstanceDatapack(instance_id, datapack_id) {
+            return this.fetch(`instances/${instance_id}/datapacks/${datapack_id}`, "DELETE");
         },
 
-        async getWorldMods(world_id) {
-            return this.fetch(`worlds/${world_id}/mods`);
+        async getInstanceMods(instance_id) {
+            return this.fetch(`instances/${instance_id}/mods`);
         },
 
-        async addWorldMod(world_id, data) {
-            return this.fetch(`worlds/${world_id}/mods`, "POST", data);
+        async addInstanceMod(instance_id, data) {
+            return this.fetch(`instances/${instance_id}/mods`, "POST", data);
         },
 
-        async deleteWorldMod(world_id, mod_id) {
-            return this.fetch(`worlds/${world_id}/mods/${mod_id}`, "DELETE");
+        async deleteInstanceMod(instance_id, mod_id) {
+            return this.fetch(`instances/${instance_id}/mods/${mod_id}`, "DELETE");
         },
         
     };

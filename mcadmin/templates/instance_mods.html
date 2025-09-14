@@ -1,30 +1,30 @@
 {% extends "layout.html" %}
-{% block title %}World Datapacks{% endblock %}
+{% block title %}Instance Mods{% endblock %}
 
 {% block content %}
 
-<h2 class="mb-3">{{ world.name }} - Datapacks</h2>
-<p class="text-muted">Add a new datapack or delete existing ones.</p>
+<h2 class="mb-3">{{ instance.name }} - Mods</h2>
+<p class="text-muted">Add a new mod or delete existing ones.</p>
 
 <div class="row g-3">
     <div class="col-12">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <div class="d-flex align-items-center gap-2">
-                    <span class="fw-semibold"><i class="bi bi-box me-2"></i></span>
+                    <span class="fw-semibold"><i class="bi bi-gear me-2"></i></span>
                 </div>
                 <div class="d-flex align-items-center gap-2">
-                    <button class="btn btn-outline-primary btn-sm" @click="openAddDatapackModal">
+                    <button class="btn btn-outline-primary btn-sm" @click="openAddModModal">
                         <i class="bi bi-plus-lg me-1"></i>
-                        Add Datapack
+                        Add Mod
                     </button>
                 </div>
             </div>
 
             <div class="card-body p-0">
                 <ul class="list-group list-group-flush">
-                    <li class="list-group-item" v-for="dp in world_datapacks" v-cloak>
-                        <div class="row-loading-overlay" v-if="dp.pending">
+                    <li class="list-group-item" v-for="m in instance_mods" v-cloak>
+                        <div class="row-loading-overlay" v-if="m.pending">
                             <div class="spinner-border text-primary" role="status">
                                 <span class="visually-hidden">Loading...</span>
                             </div>
@@ -32,51 +32,51 @@
                         <div class="d-flex justify-content-between align-items-start gap-3">
                             <div>
                                 <div class="fw-semibold">
-                                    <span v-text="dp.name"></span>
+                                    <span v-text="m.name"></span>
                                 </div>
-                                <div class="text-muted small">Added at: <strong v-text="$formatLocalDate(dp.added_at)"></strong></div>
+                                <div class="text-muted small">Added at: <strong v-text="$formatLocalDate(m.added_at)"></strong></div>
                             </div>
                             <div class="d-flex flex-wrap gap-2 list-item-actions">
-                                <button class="btn btn-sm btn-outline-danger" @click="deleteDatapack(dp)" title="Delete">
+                                <button class="btn btn-sm btn-outline-danger" @click="deleteMod(m)" title="Delete">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </div>
                         </div>
                     </li>
                 </ul>
-                <div class="text-muted text-center m-3" v-if="world_datapacks !== null && world_datapacks.length === 0" v-cloak>
-                    No datapacks added yet. Click the "<i class="bi bi-plus-lg me-1"></i>Add Datapack" button to create one.
+                <div class="text-muted text-center m-3" v-if="instance_mods !== null && instance_mods.length === 0" v-cloak>
+                    No mods added yet. Click the "<i class="bi bi-plus-lg me-1"></i>Add Mod" button to create one.
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Add Datapack Modal -->
-<div class="modal fade" ref="add_datapack_modal" tabindex="-1" aria-labelledby="addDatapackModalLabel" aria-hidden="true">
+<!-- Add Mod Modal -->
+<div class="modal fade" ref="add_mod_modal" tabindex="-1" aria-labelledby="addModModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form action="#" autocomplete="off" @submit.prevent="addDatapack">
+            <form action="#" autocomplete="off" @submit.prevent="addMod">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="addDatapackModalLabel"><i class="bi bi-magic me-2"></i>Add Datapack</h5>
+                    <h5 class="modal-title" id="addModModalLabel"><i class="bi bi-magic me-2"></i>Add Mod</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="row g-3">
                         <div class="col-12">
                             <div class="col-12">
-                                <label class="form-label" for="datapack_file">Datapack Archive (ZIP)</label>
-                                <input class="form-control" ref="datapack_file" id="datapack_file" type="file" accept=".zip" @change="handleDatapackFileUpload($event)">
+                                <label class="form-label" for="mod_file">Mod File (JAR)</label>
+                                <input class="form-control" ref="mod_file" id="mod_file" type="file" accept=".jar" @change="handleModFileUpload($event)">
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button class="btn btn-primary" :disabled="!add_datapack_form || adding_datapack">
-                        <div class="spinner-border spinner-border-sm me-1" v-if="adding_datapack" v-cloak></div>
+                    <button class="btn btn-primary" :disabled="!add_mod_form || adding_mod">
+                        <div class="spinner-border spinner-border-sm me-1" v-if="adding_mod" v-cloak></div>
                         <i class="bi bi-check2-circle me-1" v-else></i>
-                        Add Datapack
+                        Add Mod
                     </button>
                 </div>
             </form>
@@ -88,5 +88,5 @@
 
 {% block scripts %}
 {{ super() }}
-<script src="/static/js/pages/world_datapacks.js?v={{ build_version }}"></script>
+<script src="/static/js/pages/instance_mods.js?v={{ build_version }}"></script>
 {% endblock %}

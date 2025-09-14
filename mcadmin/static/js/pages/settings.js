@@ -6,19 +6,19 @@
     createApp({
         data: () => ({
             loaded: false,
-            create_world_modal: null,
-            update_world_modal: null,
+            create_instance_modal: null,
+            update_instance_modal: null,
             server_status: null,
             global_properties: {},
-            worlds: null,
-            active_world: null,
-            create_world_form: { properties: {} },
-            update_world_form: {},
-            update_world_ref: null,
-            creating_world: false,
+            instances: null,
+            active_instance: null,
+            create_instance_form: { properties: {} },
+            update_instance_form: {},
+            update_instance_ref: null,
+            creating_instance: false,
             updating_server_status: false,
             updating_global_properties: false,
-            activating_world: false,
+            activating_instance: false,
             stats_ws: null,
             stats_ws_unsubscribe: null,
         }),
@@ -28,7 +28,7 @@
 
             try {
                 await Promise.all([
-                    this.fetchWorlds(),
+                    this.fetchInstances(),
                     this.fetchGlobalProperties(),
                 ]);
             } catch (error) {
@@ -41,8 +41,8 @@
         },
 
         async mounted() {
-            this.create_world_modal = new Modal(this.$refs.create_world_modal);
-            this.update_world_modal = new Modal(this.$refs.update_world_modal);
+            this.create_instance_modal = new Modal(this.$refs.create_instance_modal);
+            this.update_instance_modal = new Modal(this.$refs.update_instance_modal);
         },
 
         methods: {
@@ -88,10 +88,10 @@
                 }
             },
 
-            async fetchWorlds() {
-                this.worlds = await api.getWorlds();
+            async fetchInstances() {
+                this.instances = await api.getInstances();
 
-                this.active_world = this.worlds.find(w => w.active) || null;
+                this.active_instance = this.instances.find(i => i.active) || null;
             },
 
             async fetchGlobalProperties() {
@@ -110,83 +110,83 @@
                 }
             },
 
-            async createWorld() {
+            async createInstance() {
                 try {
-                    this.creating_world = true;
+                    this.creating_instance = true;
 
-                    const response = await api.createWorld(this.create_world_form);
+                    const response = await api.createInstance(this.create_instance_form);
 
                     notify.success(response.message);
 
-                    this.create_world_modal.hide();
+                    this.create_instance_modal.hide();
 
-                    await this.fetchWorlds();
+                    await this.fetchInstances();
                 } catch (error) {
-                    notify.error(`Error creating world: ${error.message}`);
+                    notify.error(`Error creating instance: ${error.message}`);
                 } finally {
-                    this.creating_world = false;
+                    this.creating_instance = false;
                 }
             },
 
-            async updateWorld() {
+            async updateInstance() {
                 try {
-                    this.update_world_modal.hide();
+                    this.update_instance_modal.hide();
 
-                    this.update_world_ref.pending = true;
+                    this.update_instance_ref.pending = true;
 
-                    const response = await api.updateWorld(this.update_world_form.id, this.update_world_form);
+                    const response = await api.updateInstance(this.update_instance_form.id, this.update_instance_form);
 
                     notify.success(response.message);
 
-                    this.update_world_modal.hide();
-                    this.setUpdateWorldRef(null);
+                    this.update_instance_modal.hide();
+                    this.setUpdateInstanceRef(null);
 
-                    await this.fetchWorlds();
+                    await this.fetchInstances();
                 } catch (error) {
-                    this.update_world_ref.pending = false;
+                    this.update_instance_ref.pending = false;
 
-                    notify.error(`Error updating world: ${error.message}`);
+                    notify.error(`Error updating instance: ${error.message}`);
                 }
             },
 
-            async activateWorld(world) {
-                if (!await confirm.show(`Are you sure you want to set world ${world.name} as active?`)) {
+            async activateInstance(instance) {
+                if (!await confirm.show(`Are you sure you want to set instance ${instance.name} as active?`)) {
                     return;
                 }
 
                 try {
-                    world.pending = true;
-                    this.activating_world = true;
+                    instance.pending = true;
+                    this.activating_instance = true;
 
-                    const response = await api.activateWorld(world.id);
+                    const response = await api.activateInstance(instance.id);
 
                     notify.success(response.message);
 
-                    await this.fetchWorlds();
+                    await this.fetchInstances();
                 } catch (error) {
-                    world.pending = false;
+                    instance.pending = false;
 
-                    notify.error(`Error activating world: ${error.message}`);
+                    notify.error(`Error activating instance: ${error.message}`);
                 } finally {
-                    this.activating_world = false;
+                    this.activating_instance = false;
                 }
             },
 
-            async deleteWorld(world) {
-                if (!await confirm.show(`Are you sure you want to delete world ${world.name}?`)) {
+            async deleteInstance(instance) {
+                if (!await confirm.show(`Are you sure you want to delete instance ${instance.name}?`)) {
                     return;
                 }
 
                 try {
-                    world.pending = true;
+                    instance.pending = true;
 
-                    const response = await api.deleteWorld(world.id);
+                    const response = await api.deleteInstance(instance.id);
 
                     notify.success(response.message);
 
-                    await this.fetchWorlds();
+                    await this.fetchInstances();
                 } catch (error) {
-                    world.pending = false;
+                    instance.pending = false;
 
                     notify.error(error.message);
                 }
@@ -208,25 +208,25 @@
                 }
             },
 
-            openCreateWorldModal() {
-                this.resetCreateWorldModal();
-                this.create_world_modal.show();
+            openCreateInstanceModal() {
+                this.resetCreateInstanceModal();
+                this.create_instance_modal.show();
             },
 
-            openUpdateWorldModal(world) {
-                this.setUpdateWorldRef(world);
+            openUpdateInstanceModal(instance) {
+                this.setUpdateInstanceRef(instance);
 
-                this.update_world_form = {
-                    id: world.id,
-                    name: world.name,
-                    server_version: world.server_version,
+                this.update_instance_form = {
+                    id: instance.id,
+                    name: instance.name,
+                    server_version: instance.server_version,
                 };
 
-                this.update_world_modal.show();
+                this.update_instance_modal.show();
             },
 
-            resetCreateWorldModal() {
-                this.create_world_form = {
+            resetCreateInstanceModal() {
+                this.create_instance_form = {
                     server_type: "vanilla",
                     properties: {
                         "level-type": "default",
@@ -238,16 +238,16 @@
 
             handleWorldFileUpload(e) {
                 if (!e.target.files || e.target.files.length === 0) {
-                    this.create_world_form.world_archive = null;
+                    this.create_instance_form.world_archive = null;
                     return;
                 }
 
-                this.create_world_form.world_archive = e.target.files[0];
-                this.create_world_form.properties = {}
+                this.create_instance_form.world_archive = e.target.files[0];
+                this.create_instance_form.properties = {}
             },
 
-            setUpdateWorldRef(world) {
-                this.update_world_ref = world;
+            setUpdateInstanceRef(instance) {
+                this.update_instance_ref = instance;
             }
 
         }

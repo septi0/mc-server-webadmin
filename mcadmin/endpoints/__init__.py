@@ -8,11 +8,11 @@ from .user import user_routes
 from .logs import logs_routes
 from .terminal import terminal_routes
 from .settings import settings_routes
-from .worlds import worlds_routes
 from .global_properties import global_properties_routes
-from .world_backups import world_backups_routes
-from .world_datapacks import world_datapacks_routes
-from .world_mods import world_mods_routes
+from .instances import instances_routes
+from .instance_backups import instance_backups_routes
+from .instance_datapacks import instance_datapacks_routes
+from .instance_mods import instance_mods_routes
 
 __all__ = ["setup"]
 
@@ -31,8 +31,8 @@ def setup(app: web.Application) -> None:
     app.add_routes(logs_routes)
     app.add_routes(terminal_routes)
     app.add_routes(settings_routes)
-    app.add_routes(worlds_routes)
     app.add_routes(global_properties_routes)
-    app.add_routes(world_backups_routes)
-    app.add_routes(world_datapacks_routes)
-    app.add_routes(world_mods_routes)
+    app.add_routes(instances_routes)
+    app.add_routes(instance_backups_routes)
+    app.add_routes(instance_datapacks_routes)
+    app.add_routes(instance_mods_routes)

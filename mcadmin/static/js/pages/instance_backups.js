@@ -5,18 +5,18 @@
     createApp({
         data: () => ({
             loaded: false,
-            world_id: null,
-            world_backups: null,
+            instance_id: null,
+            instance_backups: null,
             last_backup_dt: null,
             creating_backup: false,
         }),
 
         async created() {
             const path_parts = window.location.pathname.split('/');
-            this.world_id = path_parts[path_parts.length - 2];
+            this.instance_id = path_parts[path_parts.length - 2];
 
             try {
-                await this.fetchWorldBackups();
+                await this.fetchInstanceBackups();
             } catch (error) {
                 notify.error(`Error fetching initial data: ${error.message}`);
             } finally {
@@ -25,9 +25,9 @@
         },
 
         methods: {
-            async fetchWorldBackups() {
-                this.world_backups = await api.getWorldBackups(this.world_id);
-                this.last_backup_dt = this.world_backups.length > 0 ? this.world_backups[0].created_at : null;
+            async fetchInstanceBackups() {
+                this.instance_backups = await api.getInstanceBackups(this.instance_id);
+                this.last_backup_dt = this.instance_backups.length > 0 ? this.instance_backups[0].created_at : null;
             },
 
             async createBackup() {
@@ -38,31 +38,31 @@
                 try {
                     this.creating_backup = true;
 
-                    const response = await api.createWorldBackup(this.world_id);
+                    const response = await api.createInstanceBackup(this.instance_id);
 
                     notify.success(response.message);
 
-                    await this.fetchWorldBackups();
+                    await this.fetchInstanceBackups();
                 } catch (error) {
-                    notify.error(`Error creating world backup: ${error.message}`);
+                    notify.error(`Error creating instance backup: ${error.message}`);
                 } finally {
                     this.creating_backup = false;
                 }
             },
 
             async restoreBackup(backup) {
-                if (! await confirm.show("Are you sure you want to restore this backup? This will overwrite the current world data.")) {
+                if (! await confirm.show("Are you sure you want to restore this backup? This will overwrite the current instance data.")) {
                     return;
                 }
 
                 try {
                     backup.pending = true;
 
-                    const response = await api.restoreWorldBackup(this.world_id, backup.id);
+                    const response = await api.restoreInstanceBackup(this.instance_id, backup.id);
 
                     notify.success(response.message);
 
-                    await this.fetchWorldBackups();
+                    await this.fetchInstanceBackups();
                 } catch (error) {
                     backup.pending = false;
 
@@ -78,11 +78,11 @@
                 try {
                     backup.pending = true;
 
-                    const response = await api.deleteWorldBackup(this.world_id, backup.id);
+                    const response = await api.deleteInstanceBackup(this.instance_id, backup.id);
 
                     notify.success(response.message);
 
-                    await this.fetchWorldBackups();
+                    await this.fetchInstanceBackups();
                 } catch (error) {
                     backup.pending = false;
 
