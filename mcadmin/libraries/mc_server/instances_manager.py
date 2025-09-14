@@ -49,11 +49,11 @@ class McServerInstMgr:
 
         os.makedirs(instance_dir)
 
-        await self._set_server_info(instance_dir, server_type=server_type, server_version=server_version)
-        await self._accept_eula(instance_dir)
-
         if world_archive:
             await self._import_world(instance_dir, world_archive)
+
+        await self._set_server_info(instance_dir, server_type=server_type, server_version=server_version)
+        await self._accept_eula(instance_dir)
 
         logger.info(f"Instance {instance} created successfully")
 
