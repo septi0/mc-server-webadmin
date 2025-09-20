@@ -57,7 +57,9 @@ async def instance_mods_get(request: web.Request):
             {
                 "id": b.id,
                 "name": b.name,
+                "enabled": b.enabled,
                 "added_at": str(b.added_at),
+                "modified_at": str(b.modified_at),
             }
         )
 
@@ -97,6 +99,37 @@ async def instance_mod_add(request: web.Request):
 
     return web.json_response({"status": "success", "message": "Mod successfully added"})
 
+
+@instance_mods_routes.post("/api/instances/{instance_id}/mods/{mod_id}")
+async def instance_mod_edit(request: web.Request):
+    instances_service: InstancesService = get_di(request).instances_service
+
+    post_data = await request.post()
+
+    instance_id = int(request.match_info.get("instance_id", 0))
+    mod_id = int(request.match_info.get("mod_id", 0))
+    enabled = post_data.get("enabled", None)
+
+    instance = await instances_service.get_instance(id=instance_id)
+
+    if not instance:
+        return web.json_response({"status": "error", "message": "Instance not found"}, status=404)
+
+    mod = await instances_service.get_mod(instance, mod_id)
+
+    if not mod:
+        return web.json_response({"status": "error", "message": "Mod not found"}, status=404)
+
+    if enabled is None:
+        return web.json_response({"status": "error", "message": "No enabled value provided"}, status=403)
+
+    try:
+        await instances_service.update_mod(instance, mod, enabled=bool(int(str(enabled))))
+    except Exception as e:
+        logger.error(f"Error updating mod {mod.id} for instance {instance.id}: {e}")
+        return web.json_response({"status": "error", "message": "Failed to update mod"}, status=500)
+
+    return web.json_response({"status": "success", "message": "Mod successfully updated"})
 
 @instance_mods_routes.delete("/api/instances/{instance_id}/mods/{mod_id}")
 async def instance_mod_delete(request: web.Request):

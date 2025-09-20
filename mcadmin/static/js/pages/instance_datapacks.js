@@ -53,6 +53,28 @@
                 }
             },
 
+            async toggleDatapack(datapack) {
+                if (! await confirm.show(`Are you sure you want to ${datapack.enabled ? 'disable' : 'enable'} this datapack?`)) {
+                    return;
+                }
+
+                try {
+                    datapack.pending = true;
+
+                    let data = { enabled: datapack.enabled ? 0 : 1 };
+
+                    const response = await api.updateInstanceDatapack(this.instance_id, datapack.id, data);
+
+                    notify.success(response.message);
+
+                    await this.fetchInstanceDatapacks();
+                } catch (error) {
+                    datapack.pending = false;
+
+                    notify.error(error.message);
+                }
+            },
+
             async deleteDatapack(datapack) {
                 if (! await confirm.show("Are you sure you want to delete this datapack? This action cannot be undone.")) {
                     return;

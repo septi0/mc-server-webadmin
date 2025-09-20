@@ -286,7 +286,6 @@ class McServerWebadminManager:
         await cmd.init()
         # await cmd.init_db(safe=True)
         # await cmd.migrate()
-        # await cmd.migrate(empty=True)
         await cmd.upgrade()
 
         self._cleanup.push("db_close", Tortoise.close_connections)

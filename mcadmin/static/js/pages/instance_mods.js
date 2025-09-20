@@ -53,6 +53,28 @@
                 }
             },
 
+            async toggleMod(mod) {
+                if (! await confirm.show(`Are you sure you want to ${mod.enabled ? 'disable' : 'enable'} this mod?`)) {
+                    return;
+                }
+
+                try {
+                    mod.pending = true;
+
+                    let data = { enabled: mod.enabled ? 0 : 1 };
+
+                    const response = await api.updateInstanceMod(this.instance_id, mod.id, data);
+
+                    notify.success(response.message);
+
+                    await this.fetchInstanceMods();
+                } catch (error) {
+                    mod.pending = false;
+
+                    notify.error(error.message);
+                }
+            },
+
             async deleteMod(mod) {
                 if (! await confirm.show("Are you sure you want to delete this mod? This action cannot be undone.")) {
                     return;

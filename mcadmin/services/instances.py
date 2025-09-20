@@ -201,6 +201,22 @@ class InstancesService:
             await self._mc_server_inst_mgr.add_datapack(instance_name, datapack_name, datapack_archive=datapack_archive)
 
         return datapack
+    
+    async def update_datapack(self, instance: Instances, datapack: InstanceDatapacks, **kwargs) -> None:
+        if instance.id != datapack.instance_id:
+            raise ValueError("Datapack does not belong to the specified instance")
+
+        async with in_transaction():
+            previous_state = datapack.enabled
+
+            datapack.update_from_dict(kwargs)
+            await datapack.save()
+            
+            instance_name = str(instance.id)
+            datapack_name = str(datapack.id)
+            
+            if "enabled" in kwargs and previous_state != datapack.enabled:
+                await self._mc_server_inst_mgr.toggle_datapack(instance_name, datapack_name, enable=datapack.enabled)
 
     async def delete_datapack(self, instance: Instances, datapack: InstanceDatapacks) -> None:
         if instance.id != datapack.instance_id:
@@ -230,6 +246,22 @@ class InstancesService:
             await self._mc_server_inst_mgr.add_mod(instance_name, mod_name, mod_jar=mod_jar)
 
         return mod
+    
+    async def update_mod(self, instance: Instances, mod: InstanceMods, **kwargs) -> None:
+        if instance.id != mod.instance_id:
+            raise ValueError("Mod does not belong to the specified instance")
+
+        async with in_transaction():
+            previous_state = mod.enabled
+
+            mod.update_from_dict(kwargs)
+            await mod.save()
+            
+            instance_name = str(instance.id)
+            mod_name = str(mod.id)
+            
+            if "enabled" in kwargs and previous_state != mod.enabled:
+                await self._mc_server_inst_mgr.toggle_mod(instance_name, mod_name, enable=mod.enabled)
 
     async def delete_mod(self, instance: Instances, mod: InstanceMods) -> None:
         if instance.id != mod.instance_id:

@@ -122,6 +122,16 @@ class McServerInstMgr:
         mc_datapack = McServerDatapack(datapacks_dir)
 
         await mc_datapack.add(datapack_name, datapack_archive=datapack_archive)
+        
+    async def toggle_datapack(self, instance: str, datapack_name: str, *, enable: bool) -> None:
+        """Enable or disable a datapack for the given instance"""
+        datapacks_dir = self._get_datapacks_dir(instance)
+        mc_datapack = McServerDatapack(datapacks_dir)
+
+        if enable:
+            await mc_datapack.enable(datapack_name)
+        else:
+            await mc_datapack.disable(datapack_name)
 
     async def delete_datapack(self, instance: str, datapack_name: str) -> None:
         """Delete a datapack from the given instance"""
@@ -136,6 +146,16 @@ class McServerInstMgr:
         mc_mod = McServerMod(mods_dir)
 
         await mc_mod.add(mod_name, mod_jar=mod_jar)
+        
+    async def toggle_mod(self, instance: str, mod_name: str, *, enable: bool) -> None:
+        """Enable or disable a mod for the given instance"""
+        mods_dir = self._get_mods_dir(instance)
+        mc_mod = McServerMod(mods_dir)
+
+        if enable:
+            await mc_mod.enable(mod_name)
+        else:
+            await mc_mod.disable(mod_name)
 
     async def delete_mod(self, instance: str, mod_name: str) -> None:
         """Delete a mod from the given instance"""

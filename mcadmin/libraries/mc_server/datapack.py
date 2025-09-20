@@ -37,6 +37,30 @@ class McServerDatapack:
 
         logger.info(f"Datapack {datapack_name} added")
 
+    async def enable(self, datapack_name: str) -> None:
+        """Enable a datapack by name"""
+        datapack_file = os.path.join(self._datapacks_dir, f"{datapack_name}.zip")
+        disabled_datapack_file = os.path.join(self._datapacks_dir, f"{datapack_name}.zip.disabled")
+
+        if not os.path.exists(disabled_datapack_file):
+            raise McServerDatapackError(f"Datapack {datapack_name} is not disabled")
+        
+        await asyncio.to_thread(os.rename, disabled_datapack_file, datapack_file)
+
+        logger.info(f"Datapack {datapack_name} enabled")
+        
+    async def disable(self, datapack_name: str) -> None:
+        """Disable a datapack by name"""
+        datapack_file = os.path.join(self._datapacks_dir, f"{datapack_name}.zip")
+        disabled_datapack_file = os.path.join(self._datapacks_dir, f"{datapack_name}.zip.disabled")
+
+        if not os.path.exists(datapack_file):
+            raise McServerDatapackError(f"Datapack {datapack_name} is not enabled")
+        
+        await asyncio.to_thread(os.rename, datapack_file, disabled_datapack_file)
+
+        logger.info(f"Datapack {datapack_name} disabled")
+
     async def delete(self, datapack_name: str) -> None:
         """Delete a datapack by name"""
         datapack_file = os.path.join(self._datapacks_dir, f"{datapack_name}.zip")

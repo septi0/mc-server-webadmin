@@ -301,7 +301,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <div class="text-danger flex-grow-1" v-if="creating_instance || 1==1">Creating instance, this may take a while. Please wait...</div>
+                    <div class="text-danger flex-grow-1" v-if="creating_instance">Creating instance, this may take a while. Please wait...</div>
                     <div class="d-flex gap-2 flex-fill flex-lg-grow-0">
                         <button type="button" class="btn btn-outline-secondary flex-fill flex-lg-grow-0" data-bs-dismiss="modal">Cancel</button>
                         <button class="btn btn-primary flex-fill flex-lg-grow-0" :disabled="creating_instance">

@@ -148,6 +148,10 @@
             return this.fetch(`instances/${instance_id}/datapacks`, "POST", data);
         },
 
+        async updateInstanceDatapack(instance_id, datapack_id, data) {
+            return this.fetch(`instances/${instance_id}/datapacks/${datapack_id}`, "POST", data);
+        },
+
         async deleteInstanceDatapack(instance_id, datapack_id) {
             return this.fetch(`instances/${instance_id}/datapacks/${datapack_id}`, "DELETE");
         },
@@ -158,6 +162,10 @@
 
         async addInstanceMod(instance_id, data) {
             return this.fetch(`instances/${instance_id}/mods`, "POST", data);
+        },
+
+        async updateInstanceMod(instance_id, mod_id, data) {
+            return this.fetch(`instances/${instance_id}/mods/${mod_id}`, "POST", data);
         },
 
         async deleteInstanceMod(instance_id, mod_id) {

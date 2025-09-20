@@ -36,6 +36,30 @@ class McServerMod:
             await f.write(content)
 
         logger.info(f"Mod {mod_name} added")
+        
+    async def enable(self, mod_name: str) -> None:
+        """Enable a mod by name"""
+        mod_file = os.path.join(self._mods_dir, f"{mod_name}.jar")
+        disabled_mod_file = os.path.join(self._mods_dir, f"{mod_name}.jar.disabled")
+
+        if not os.path.exists(disabled_mod_file):
+            raise McServerModError(f"Mod {mod_name} is not disabled")
+        
+        await asyncio.to_thread(os.rename, disabled_mod_file, mod_file)
+
+        logger.info(f"Mod {mod_name} enabled")
+        
+    async def disable(self, mod_name: str) -> None:
+        """Disable a mod by name"""
+        mod_file = os.path.join(self._mods_dir, f"{mod_name}.jar")
+        disabled_mod_file = os.path.join(self._mods_dir, f"{mod_name}.jar.disabled")
+
+        if not os.path.exists(mod_file):
+            raise McServerModError(f"Mod {mod_name} is not enabled")
+        
+        await asyncio.to_thread(os.rename, mod_file, disabled_mod_file)
+
+        logger.info(f"Mod {mod_name} disabled")
 
     async def delete(self, mod_name: str) -> None:
         """Delete a mod by name"""

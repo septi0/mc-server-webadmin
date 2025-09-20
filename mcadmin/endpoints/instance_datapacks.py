@@ -57,7 +57,9 @@ async def instance_datapacks_get(request: web.Request):
             {
                 "id": b.id,
                 "name": b.name,
+                "enabled": b.enabled,
                 "added_at": str(b.added_at),
+                "modified_at": str(b.modified_at),
             }
         )
 
@@ -96,6 +98,38 @@ async def instance_datapack_add(request: web.Request):
         return web.json_response({"status": "error", "message": "Failed to add datapack"}, status=500)
 
     return web.json_response({"status": "success", "message": "Datapack successfully added"})
+
+
+@instance_datapacks_routes.post("/api/instances/{instance_id}/datapacks/{datapack_id}")
+async def instance_datapack_edit(request: web.Request):
+    instances_service: InstancesService = get_di(request).instances_service
+
+    post_data = await request.post()
+
+    instance_id = int(request.match_info.get("instance_id", 0))
+    datapack_id = int(request.match_info.get("datapack_id", 0))
+    enabled = post_data.get("enabled", None)
+
+    instance = await instances_service.get_instance(id=instance_id)
+
+    if not instance:
+        return web.json_response({"status": "error", "message": "Instance not found"}, status=404)
+
+    datapack = await instances_service.get_datapack(instance, datapack_id)
+
+    if not datapack:
+        return web.json_response({"status": "error", "message": "Datapack not found"}, status=404)
+
+    if enabled is None:
+        return web.json_response({"status": "error", "message": "No enabled value provided"}, status=403)
+
+    try:
+        await instances_service.update_datapack(instance, datapack, enabled=bool(int(str(enabled))))
+    except Exception as e:
+        logger.error(f"Error updating datapack {datapack.id} for instance {instance.id}: {e}")
+        return web.json_response({"status": "error", "message": "Failed to update datapack"}, status=500)
+
+    return web.json_response({"status": "success", "message": "Datapack successfully updated"})
 
 
 @instance_datapacks_routes.delete("/api/instances/{instance_id}/datapacks/{datapack_id}")
