@@ -79,8 +79,10 @@ class McServerWebadminManager:
     def _get_pid_filepath(self) -> str:
         if os.getuid() == 0:
             return "/var/run/mc-server-webadmin.pid"
+        elif os.environ.get("XDG_RUNTIME_DIR"):
+            return f"{os.environ.get('XDG_RUNTIME_DIR')}/mc-server-webadmin.pid"
         else:
-            return os.path.expanduser("~/.mc-server-webadmin.pid")
+            return os.path.expanduser("/tmp/mc-server-webadmin.pid")
 
     def _gen_data_directory(self) -> str:
         if self._is_venv():
