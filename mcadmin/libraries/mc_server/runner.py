@@ -128,6 +128,7 @@ class McServerRunner:
         stats = {}
 
         stats["status"] = self.get_server_status()
+        stats["last_started"] = self._server_stats.get("last_started_at", None)
 
         if stats["status"] == "stopped":
             stats["exit_code"] = self._server_stats.get("exit_code")
@@ -258,6 +259,7 @@ class McServerRunner:
         await self._set_server_stats(
             started=started,
             started_at=datetime.now(timezone.utc).isoformat(),
+            last_started_at=datetime.now(timezone.utc).isoformat(),
             initialized=False,
             pid=self._proc.pid,
             players=0,

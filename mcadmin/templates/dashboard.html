@@ -113,7 +113,7 @@
             <div class="card-header">
                 <span class="fw-semibold"><i class="bi bi-globe2 me-2"></i>Active Instance Info</span>
             </div>
-    
+
             <div class="card-body">
                 <div class="mb-2">
                     <div class="text-muted small">Name</div>
@@ -125,6 +125,12 @@
                     <div class="text-muted small">Server Version</div>
                     <div class="fs-6 fw-semibold">
                         <span v-text-ng="instance_info.server_version || '-'">-</span>
+                    </div>
+                </div>
+                <div>
+                    <div class="text-muted small">Last Started</div>
+                    <div class="fs-6 fw-semibold">
+                        <span v-text-ng="server_stats.last_started ? $formatLocalDate(server_stats.last_started) : '-'">-</span>
                     </div>
                 </div>
             </div>

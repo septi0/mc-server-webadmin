@@ -34,7 +34,7 @@
 
             <div class="card-footer d-flex align-items-center justify-content-between small text-muted">
                 <div>Lines: <span v-text-ng="log_lines_count || 0">0</span></div>
-                <div>Last update: <span v-text-ng="last_update || '-'">-</span></div>
+                <div>Last update: <span v-text-ng="last_update ? $formatLocalDate(last_update) : '-'">-</span></div>
             </div>
         </div>
     </div>
