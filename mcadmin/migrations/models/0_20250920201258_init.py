@@ -8,6 +8,10 @@ async def upgrade(db: BaseDBAsyncClient) -> str:
     "key" VARCHAR(100) NOT NULL UNIQUE,
     "value" VARCHAR(255) NOT NULL
 );
+INSERT OR IGNORE INTO global_properties (key, value) VALUES
+    ('difficulty', 'normal'),
+    ('gamemode', 'survival'),
+    ('max-players', '20');
 CREATE TABLE IF NOT EXISTS "instance_backups" (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     "instance_id" INT NOT NULL,

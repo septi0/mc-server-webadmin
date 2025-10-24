@@ -75,7 +75,7 @@
                 try {
                     this.stats_ws_unsubscribe = await this.stats_ws.subscribe((ev, data) => {
                         if (ev == 'message') {
-                            this.server_status = data.status;
+                            this.server_status = data.data.status;
                         }
                     });
                 } catch (err) {

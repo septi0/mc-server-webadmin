@@ -48,8 +48,8 @@
                             this.connected = false;
                         } else if (ev == 'message') {
                             if (this.follow_logs) {
-                                this.log_data.push(data);
-                                this.last_update = new Date().toISOString().slice(0, 19).replace("T", " ");
+                                this.log_data.push(data.data);
+                                this.last_update = data.event_date;
 
                                 this.$nextTick(() => {
                                     this.$refs.log_view.scrollTop = this.$refs.log_view.scrollHeight;

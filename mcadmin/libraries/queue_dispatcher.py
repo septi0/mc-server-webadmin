@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from datetime import datetime, timezone
 
 __all__ = ["QueueDispatcher"]
 
@@ -71,23 +72,24 @@ class QueueDispatcher:
     async def _fanout(self) -> None:
         while True:
             (event_type, item) = await self._queue.get()
+            data = {'event_date': datetime.now(timezone.utc).isoformat(), 'data': item}
 
             for sub in self._subs:
                 if sub.event_type and sub.event_type != event_type:
                     continue
 
                 try:
-                    sub.put_nowait(item)
+                    sub.put_nowait(data)
                 except asyncio.QueueFull:
                     # drop oldest then retry once
                     sub.get_nowait()
                     sub.task_done()
-                    sub.put_nowait(item)
+                    sub.put_nowait(data)
 
             self._queue.task_done()
 
             event_buffer = self._buffer.get(event_type, [])
-            event_buffer.append(item)
+            event_buffer.append(data)
 
             if len(event_buffer) > self._buffer_size:
                 event_buffer.pop(0)

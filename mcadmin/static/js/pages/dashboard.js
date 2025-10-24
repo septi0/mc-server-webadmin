@@ -53,7 +53,7 @@
                 try {
                     this.stats_ws_unsubscribe = await this.stats_ws.subscribe((ev, data) => {
                         if (ev == 'message') {
-                            this.server_stats = data;
+                            this.server_stats = data.data;
 
                             this.startUptimeTimer(this.server_stats.started_at);
                         }
