@@ -12,17 +12,31 @@ class McServerConfigSchema(BaseSettings):
     server_ip: IPvAnyAddress = ip_address("0.0.0.0")
     server_port: int = Field(default=25565, ge=0, le=65535)
     rcon_port: int = Field(default=25575, ge=0, le=65535)
-    display_ip: Optional[IPvAnyAddress | None] = None
-    display_host: Optional[str | None] = None
-    display_port: Optional[int | None] = Field(default=None, ge=0, le=65535)
+    display_ip: Optional[IPvAnyAddress] = None
+    display_host: Optional[str] = None
+    display_port: Optional[int] = Field(default=None, ge=0, le=65535)
 
     model_config = SettingsConfigDict(env_prefix="MCADMIN_")
 
     @model_validator(mode="before")
     def parse_additional_args(cls, values):
         additional_args = values.get("server_additional_args")
+        display_ip = values.get("display_ip")
+        display_host = values.get("display_host")
+        display_port = values.get("display_port")
+
         if isinstance(additional_args, str):
             values["server_additional_args"] = [arg.strip() for arg in additional_args.split(",") if arg.strip()]
+
+        if not display_ip:
+            values["display_ip"] = None
+
+        if not display_host:
+            values["display_host"] = None
+            
+        if not display_port:
+            values["display_port"] = None
+
         return values
 
 
