@@ -12,7 +12,16 @@ A modern web-based admin panel for managing Minecraft servers, worlds, and playe
 - View server logs and terminal output
 - Responsive, mobile-friendly interface
 
+## Screenshots
+
+### Dashboard
 ![Dashboard](img/dashboard.png)
+
+### Settings
+![Settings](img/settings.png)
+
+### New World
+![New World](img/new_instance.png)
 
 ## Quick Start (Docker)
 
