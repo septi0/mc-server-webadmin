@@ -53,6 +53,7 @@ class McServerWebadminUsersCli:
     def __init__(self, *, di: DiContainer) -> None:
         self._di = di
         self._handlers = {
+            "list": self.list_users,
             "create": self.create_user,
             "update": self.update_user,
             "delete": self.delete_user,
@@ -65,6 +66,17 @@ class McServerWebadminUsersCli:
             raise ValueError(f"Unknown command: {command}")
 
         await handler(**kwargs)
+
+    async def list_users(self) -> None:
+        users_service: UsersService = self._di.users_service
+
+        users = await users_service.list_users()
+        users_str = ""
+        
+        for user in users:
+           users_str += f"User: {user.username}, Role: {user.role}\n"
+
+        logger.info(f"Users:\n\n{users_str}")
 
     async def create_user(self, *, username: str, role: str, password: str) -> None:
         users_service: UsersService = self._di.users_service
