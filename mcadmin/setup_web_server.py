@@ -35,6 +35,7 @@ def _setup_jinja(app: web.Application) -> None:
     )
 
     env.globals.update(
+        app_version=app["di"].app_version,
         build_version=app["di"].build_version,
         base_url=app["di"].base_url
     )

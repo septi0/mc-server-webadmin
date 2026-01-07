@@ -2,13 +2,16 @@
     --sidebar-w: 270px;
 }
 
-html, body {
-    height: 100%;
+body {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 .app-wrap {
-    min-height: 100vh;
+    flex-grow: 1;
     display: flex;
+    min-height: 0;
 }
 
 .brand {
@@ -21,13 +24,25 @@ html, body {
     border-right: 1px solid var(--bs-border-color);
     position: sticky;
     top: 0;
-    height: 100vh;
     padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.sidebar-content {
+    flex-grow: 1;
+}
+
+.sidebar-footer {
+    flex-shrink: 1;
 }
 
 .content {
     flex: 1 1 auto;
     min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
 }
 
 .sidebar .nav-link.active {
@@ -48,6 +63,7 @@ html, body {
         transition: left .2s ease;
         z-index: 1040;
         background: var(--bs-body-bg);
+        height: 100vh;
     }
 
     .sidebar.show {

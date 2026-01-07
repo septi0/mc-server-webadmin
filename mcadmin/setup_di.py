@@ -17,9 +17,11 @@ __all__ = ["setup_di"]
 
 def setup_di(deps: DiContainer, *, config: dict, data_directory: str = "") -> None:
     build_version = ""
+    app_version = ""
 
     with open(os.path.join(os.path.dirname(__file__), "VERSION"), "r") as f:
-        build_version = hash_str(f.read().strip())
+        app_version = f.read().strip()
+        build_version = hash_str(app_version)
 
     config_obj = ConfigSchema(**config)
 
@@ -40,12 +42,16 @@ def setup_di(deps: DiContainer, *, config: dict, data_directory: str = "") -> No
     mc_server_config["server_ip"] = str(mc_server_config["server_ip"])
     mc_server_config["display_ip"] = str(mc_server_config["display_ip"]) if mc_server_config["display_ip"] else None
 
+    # ensure base url starts and ends with /
+    base_url = "/" + deps.web_server_config["base_url"].strip("/") + "/"
+    base_url = base_url.replace("//", "/")
+
     # data
     deps.mc_server_config = mc_server_config
     deps.web_server_config = web_server_config
+    deps.app_version = app_version
     deps.build_version = build_version
-    deps.base_url = deps.web_server_config["base_url"].rstrip("/") + "/"
-
+    deps.base_url = base_url
     # queues
     deps.mc_server_ev_queue = asyncio.Queue()
 
