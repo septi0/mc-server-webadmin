@@ -6,6 +6,7 @@ aiohttp_jinja2==1.6
 aiohttp_session==2.12.1
 aiohttp_security==0.5.0
 tortoise-orm==0.25.1
+aiosqlite==0.21.0
 bcrypt==4.3.0
 aerich[toml]==0.9.1
 user-agents==2.2.0
