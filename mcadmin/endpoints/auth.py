@@ -25,6 +25,7 @@ async def login_template(request: web.Request):
     auth_config_service: AuthConfigService = get_di(request).auth_config_service
     oidc_service: OIDCService = get_di(request).oidc_service
     base_url: str = get_di(request).base_url
+    get_data = request.query
     data = {}
 
     auth_methods = await auth_config_service.get_auth_methods()
@@ -37,7 +38,7 @@ async def login_template(request: web.Request):
         # search if any provider has auto_launch
         auto_launch_provider = next((p for p in oidc_providers if p.auto_launch), None)
 
-        if auto_launch_provider:
+        if auto_launch_provider and not get_data.get("direct"):
             raise web.HTTPFound(f"{base_url}login/oidc/{auto_launch_provider.id}")
 
     data["local_login"] = local_login
