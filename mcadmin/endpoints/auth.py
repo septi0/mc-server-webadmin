@@ -103,7 +103,7 @@ async def login_oidc_redirect(request: web.Request):
     session = await get_session(request)
     state = secrets.token_urlsafe(32)
     nonce = secrets.token_urlsafe(32)
-    redirect_uri = str(request.url.origin()) + f"/login/oidc/{provider_id}/callback"
+    redirect_uri = f"{request['proto']}://{request.host}/login/oidc/{provider_id}/callback"
     auth_url = await oidc_service.gen_oidc_authorization_url(provider.config, redirect_uri=redirect_uri, state=state, nonce=nonce)
 
     session["oidc_state"] = state
@@ -149,7 +149,7 @@ async def login_oidc_callback(request: web.Request):
         logger.warning(f"Invalid state parameter: {received_state} != {expected_state}")
         return web.Response(text="Invalid state parameter", status=400)
 
-    redirect_uri = str(request.url.origin()) + f"/login/oidc/{provider_id}/callback"
+    redirect_uri = f"{request['proto']}://{request.host}/login/oidc/{provider_id}/callback"
 
     try:
         token = await oidc_service.fetch_oidc_token(provider.config, response=str(request.url), redirect_uri=redirect_uri)
