@@ -21,10 +21,40 @@ def main():
     parser.add_argument("--log-level", dest="log_level", help="Log level", choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"])
     parser.add_argument("--version", action="version", version=f"{__app_name__} {__version__}")
 
+    subparsers = parser.add_subparsers(title="Commands", dest="command")
+
+    dev_parser = subparsers.add_parser("dev", help="Dev commands")
+    dev_subparsers = dev_parser.add_subparsers(title="Dev Commands", dest="subcommand", required=True)
+
+    dev_gen_migrations = dev_subparsers.add_parser("generate-migrations", help="Generate database migrations")
+
+    users_parser = subparsers.add_parser("users", help="User management commands")
+    users_subparsers = users_parser.add_subparsers(title="User Commands", dest="subcommand", required=True)
+
+    users_list_parser = users_subparsers.add_parser("list", help="List users")
+
+    user_create_parser = users_subparsers.add_parser("create", help="Create a new user")
+    user_create_parser.add_argument("--username", required=True, help="Username of the new user")
+    user_create_parser.add_argument("--role", required=True, help="Role of the new user")
+    user_create_parser.add_argument("--password", required=True, help="Password of the new user")
+
+    user_update_parser = users_subparsers.add_parser("update", help="Update an existing user")
+    user_update_parser.add_argument("--username", required=True, help="Username of the user to update")
+    user_update_parser.add_argument("--role", required=True, help="New role of the user")
+    user_update_parser.add_argument("--password", required=True, help="New password of the user")
+
+    user_delete_parser = users_subparsers.add_parser("delete", help="Delete a user")
+    user_delete_parser.add_argument("--username", required=True, help="Username of the user to delete")
+
+    global_keys = ["log_file", "log_level", "config_file", "data_directory"]
+
     args = parser.parse_args()
 
+    global_args = {key: getattr(args, key) for key in global_keys}
+    cmd_args = {k: v for k, v in vars(args).items() if k not in global_keys}
+
     try:
-        mcadmin = McServerWebadminManager(log_file=args.log_file, log_level=args.log_level, config_file=args.config_file, data_directory=args.data_directory)
+        mcadmin = McServerWebadminManager(**global_args)
     except ValidationError as e:
         print(f"Configuration file contains {e.error_count()} error(s):")
 
@@ -36,6 +66,6 @@ def main():
         print(f"\nCheck documentation for more information on how to configure Mc-Server-Webadmin")
         sys.exit(2)
 
-    mcadmin.run()
+    mcadmin.run(**cmd_args)
 
     sys.exit(0)

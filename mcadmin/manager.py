@@ -8,6 +8,7 @@ from aiohttp import web
 from logging.handlers import TimedRotatingFileHandler
 from tortoise import Tortoise
 from aerich import Command as AerichCommand
+from mcadmin.cli import McServerWebadminCli
 from mcadmin.utils.random import random_password
 from mcadmin.libraries.cleanup_queue import CleanupQueue
 from mcadmin.libraries.di_container import DiContainer
@@ -42,8 +43,16 @@ class McServerWebadminManager:
 
         setup_di(self._di, config=self._load_config(file=config_file), data_directory=self._data_directory)
 
-    def run(self) -> None:
-        self._run_main(self._async_run)
+    def run(self, **kwargs) -> None:
+        command = kwargs.get("command")
+        subcommand = kwargs.get("subcommand")
+        args = {k: v for k, v in kwargs.items() if k not in ["command", "subcommand"]}
+        run = None
+
+        if not command:
+            self._run_main(self._async_run)
+        else:
+            self._run_main(self._async_cmd_manager, command, subcommand, **args)
 
     def _load_config(self, *, file: str = "") -> dict:
         config_files = [
@@ -286,11 +295,20 @@ class McServerWebadminManager:
         cmd = AerichCommand(tortoise_config=config, app="models", location=migrations_location)
 
         await cmd.init()
-        # await cmd.init_db(safe=True)
-        # await cmd.migrate()
         await cmd.upgrade()
 
         self._cleanup.push("db_close", Tortoise.close_connections)
+        
+        return cmd
+
+    async def _async_cmd_manager(self, cmd: str, subcmd: str, **kwargs):
+        aerich_cmd = await self._init_db()
+
+        if cmd == "dev":
+            kwargs["aerich_cmd"] = aerich_cmd
+
+        cli = McServerWebadminCli(cmd, di=self._di)
+        await cli.run(subcmd, **kwargs)
 
     async def _ensure_admin_user(self):
         users_service: UsersService = self._di.users_service
