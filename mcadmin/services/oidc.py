@@ -1,3 +1,4 @@
+import time
 import httpx
 import asyncio
 from authlib.integrations.httpx_client import AsyncOAuth2Client
@@ -95,14 +96,14 @@ class OIDCService:
 
         return token
 
-    async def validate_oidc_id_token(self, provider_config: dict, token: dict, *, nonce: str) -> dict:
+    async def validate_oidc_id_token(self, provider_config: dict, token: str, *, nonce: str) -> dict:
         oidc_meta = await self.get_oidc_provider_meta(provider_config["issuer_url"])
         jwks_uri = oidc_meta['jwks_uri']
         jwks = await self._fetch_oidc_provider_jwks(jwks_uri)
         key_set = JsonWebKey.import_key_set(jwks)
 
         claims = jwt.decode(
-            token["id_token"],
+            token,
             key_set,
             claims_options={
                 "iss": {"values": [provider_config["issuer_url"]], "essential": True},
@@ -113,6 +114,40 @@ class OIDCService:
             },
         )
         claims.validate()
+        return dict(claims)
+    
+    async def validate_oidc_logout_token(self, provider_config: dict, token: str) -> dict:
+        oidc_meta = await self.get_oidc_provider_meta(provider_config["issuer_url"])
+        jwks_uri = oidc_meta['jwks_uri']
+        jwks = await self._fetch_oidc_provider_jwks(jwks_uri)
+        key_set = JsonWebKey.import_key_set(jwks)
+
+        claims = jwt.decode(
+            token,
+            key_set,
+            claims_options={
+                "iss": {"values": [provider_config["issuer_url"]], "essential": True},
+                "aud": {"values": [provider_config["client_id"]], "essential": True},
+                "exp": {"essential": True},
+                "iat": {"essential": True},
+            },
+        )
+        claims.validate()
+        
+        events = claims.get("events")
+        if not isinstance(events, dict) or "http://schemas.openid.net/event/backchannel-logout" not in events:
+            raise ValueError("Invalid logout token: missing backchannel logout event")
+
+        if "nonce" in claims:
+            raise ValueError("Invalid logout token: nonce must not be present")
+
+        if not claims.get("sid") and not claims.get("sub"):
+            raise ValueError("Invalid logout token: missing sid and sub")
+        
+        now = time.time()
+        if claims["iat"] < now - 300:
+            raise ValueError("Logout token too old")
+        
         return dict(claims)
 
     async def get_oidc_provider_logout_endpoint(self, provider_config: dict) -> str:

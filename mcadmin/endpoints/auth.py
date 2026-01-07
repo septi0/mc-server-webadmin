@@ -5,6 +5,7 @@ from aiohttp import web
 from aiohttp_session import get_session
 from mcadmin.services.auth_config import AuthConfigService
 from mcadmin.services.oidc import OIDCService
+from mcadmin.services.sessions import SessionsService
 from mcadmin.utils.url import sanitize_url_path
 from mcadmin.utils.web import get_di
 from mcadmin.utils.validate import validate_data, require_roles
@@ -161,7 +162,7 @@ async def login_oidc_callback(request: web.Request):
         return web.Response(text=f"Error fetching OIDC token: {e}", status=400)
 
     try:
-        data = await oidc_service.validate_oidc_id_token(provider.config, token=token, nonce=expected_nonce)
+        data = await oidc_service.validate_oidc_id_token(provider.config, token=token["id_token"], nonce=expected_nonce)
     except Exception as e:
         logger.exception(f"Error validating OIDC ID token: {e}")
         return web.Response(text=f"Error validating OIDC ID token", status=400)
@@ -312,3 +313,42 @@ async def logout(request: web.Request):
     logger.info(f"User '{request['auth_username']}' logged out")
 
     raise web.HTTPFound(redirect_location)
+
+
+@auth_routes.post("/logout/oidc/{provider_id}/backchannel")
+async def logout_oidc_backchannel(request: web.Request):
+    oidc_service: OIDCService = get_di(request).oidc_service
+    users_service: UsersService = get_di(request).users_service
+    sessions_service: SessionsService = get_di(request).sessions_service
+    provider_id = request.match_info["provider_id"]
+
+    provider = await oidc_service.get_oidc_provider(id=provider_id)
+
+    if not provider:
+        return web.Response(status=200)
+
+    post_data = await request.post()
+
+    logout_token = str(post_data.get("logout_token", ""))
+
+    try:
+        data = await oidc_service.validate_oidc_logout_token(provider.config, token=logout_token)
+    except Exception as e:
+        logger.exception(f"Error validating OIDC logout token: {e}")
+        return web.Response(text=f"Error validating OIDC logout token", status=400)
+    
+    oidc_sub = data.get("sub", "")
+    user = await users_service.get_user_by_identity(provider, oidc_sub)
+
+    if not user:
+        logger.warning(f"OIDC logout token received for unknown user (sub: {oidc_sub})")
+        return web.Response(status=200)
+
+    try:
+        await sessions_service.delete_all_user_sessions(user.id)
+    except Exception as e:
+        logger.exception(f"Error invalidating user sessions: {e}")
+        return web.Response(status=200)
+    
+    logger.info(f"All sessions invalidated for user '{user.username}' via OIDC backchannel logout")
+    return web.Response(status=200)

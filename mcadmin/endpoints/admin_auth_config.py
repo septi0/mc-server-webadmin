@@ -19,7 +19,10 @@ logger = logging.getLogger(__name__)
 @require_roles(["admin"])
 @aiohttp_jinja2.template("authentication.html")
 async def authentication_template(request: web.Request):
+    base_url: str = get_di(request).base_url
     data = {}
+
+    data["uri_base"] = f"{request['proto']}://{request.host}{base_url}"
 
     return data
 
