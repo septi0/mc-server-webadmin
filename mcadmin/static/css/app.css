@@ -3,7 +3,7 @@
 }
 
 body {
-    height: 100vh;
+    height: 100dvh;
     display: flex;
     flex-direction: column;
 }
@@ -63,7 +63,7 @@ body {
         transition: left .2s ease;
         z-index: 1040;
         background: var(--bs-body-bg);
-        height: 100vh;
+        height: 100dvh;
     }
 
     .sidebar.show {
