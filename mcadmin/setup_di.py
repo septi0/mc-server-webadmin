@@ -43,7 +43,7 @@ def setup_di(deps: DiContainer, *, config: dict, data_directory: str = "") -> No
     mc_server_config["display_ip"] = str(mc_server_config["display_ip"]) if mc_server_config["display_ip"] else None
 
     # ensure base url starts and ends with /
-    base_url = "/" + deps.web_server_config["base_url"].strip("/") + "/"
+    base_url = "/" + web_server_config["base_url"].strip("/") + "/"
     base_url = base_url.replace("//", "/")
 
     # data
