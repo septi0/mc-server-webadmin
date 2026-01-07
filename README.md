@@ -112,7 +112,7 @@ Check the help for available commands as this feature is still under development
 
 #### Docker installation
 ```bash
-docker exec -it <container-name> users --help
+docker exec -it <container-name> mc-server-webadmin users --help
 ```
 
 #### Local installation

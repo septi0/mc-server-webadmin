@@ -63,6 +63,6 @@ VOLUME ["/data"]
 
 EXPOSE 25565 8000
 
-ENTRYPOINT ["/usr/bin/tini","--","mc-server-webadmin","--data","/data"]
+ENTRYPOINT ["/usr/bin/tini","--","mc-server-webadmin"]
 
 CMD []

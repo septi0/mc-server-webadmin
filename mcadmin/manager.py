@@ -94,7 +94,9 @@ class McServerWebadminManager:
             return os.path.expanduser("/tmp/mc-server-webadmin.pid")
 
     def _gen_data_directory(self) -> str:
-        if self._is_venv():
+        if os.getenv("APP_ENV", "") == "docker":
+            data_directory = "/data"
+        elif self._is_venv():
             data_directory = os.path.join(sys.prefix, "var")
         elif os.getuid() == 0:
             data_directory = f"/var/lib/mc-server-webadmin/"
