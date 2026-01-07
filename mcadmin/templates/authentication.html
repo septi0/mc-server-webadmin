@@ -68,7 +68,7 @@
                             </div>
                             <div class="text-muted small">
                                 Created at: <strong v-text="$formatLocalDate(p.created_at)"></strong><br>
-                                Redirect URI: <strong>{{ uri_base }}logout/oidc/<span v-text="p.id"></span>/callback</strong><br>
+                                Redirect URI: <strong>{{ uri_base }}login/oidc/<span v-text="p.id"></span>/callback</strong><br>
                                 Logout Backchannel URI: <strong>{{ uri_base }}logout/oidc/<span v-text="p.id"></span>/backchannel</strong>
                             </div>
                         </div>
