@@ -12,6 +12,7 @@ A modern web-based admin panel for managing Minecraft servers, worlds, and playe
 - View server logs and terminal output
 - Responsive, mobile-friendly interface
 - Openid Connect authentication support
+- Admin CLI for users administration
 
 ## Screenshots
 
@@ -104,6 +105,19 @@ cp config.sample.yml config.yml
 
 ```bash
 python run.py --config config.yml
+```
+
+### 5. Running commands via CLI
+Check the help for available commands as this feature is still under development.
+
+#### Docker installation
+```bash
+docker exec -it <container-name> users --help
+```
+
+#### Local installation
+```bash
+python run.py --config config.yml users --help
 ```
 
 ---
