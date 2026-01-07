@@ -107,20 +107,30 @@ cp config.sample.yml config.yml
 python run.py --config config.yml
 ```
 
-### 5. Running commands via CLI
+## Running commands via CLI
 Check the help for available commands as this feature is still under development.
 
-#### Docker installation
+### Docker installation
 ```bash
 docker exec -it <container-name> mc-server-webadmin users --help
 ```
 
-#### Local installation
+### Local installation
 ```bash
 python run.py --config config.yml users --help
 ```
 
----
+## Openid Connect
+
+This application supports OpenID Connect (OIDC) for user authentication. OIDC is an authentication layer on top of OAuth 2.0 that allows clients to verify the identity of users based on the authentication performed by an authorization server.
+
+### Configuration
+
+To use OIDC, you need to enable `OpenID Connect Authentication` option in Authentication menu and configure a provider.
+After configuration, the `Redirect URI` and `Logout Backchannel URI` will be displayed in the list of providers.
+
+When using the `Auto Launch` option, users will be automatically redirected to the OIDC provider's login page without having to click a login button. In order to use the regular login flow, add `?direct=true` to the login URL.
+
 ## Disclaimer
 
 This software is provided as is, without any warranty. Use at your own risk. The author is not responsible for any damage caused by this software.
