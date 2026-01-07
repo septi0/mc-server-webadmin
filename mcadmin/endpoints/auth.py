@@ -110,6 +110,8 @@ async def login_oidc_redirect(request: web.Request):
     session["oidc_nonce"] = nonce
     session["oidc_provider"] = provider.id
 
+    logger.info(f"Redirecting user to OIDC provider '{provider.name}' authorization endpoint. Redirect uri: {redirect_uri}")
+
     raise web.HTTPFound(auth_url)
 
 
