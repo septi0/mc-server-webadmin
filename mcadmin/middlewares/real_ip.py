@@ -16,7 +16,7 @@ async def real_ip_middleware(request, handler):
     if not req_chain or not trusted_proxies:
         request["real_ip"] = remote
         request["proto"] = request.url.scheme
-        
+
         return await handler(request)
 
     ip_list = [ip.strip() for ip in req_chain.split(",") if ip.strip()]
@@ -41,7 +41,7 @@ async def real_ip_middleware(request, handler):
         client_ip = remote
 
     request["real_ip"] = client_ip
-    request["proto"] = normalize_proto_value(req_proto) if is_ip_trusted(remote, trusted_proxies) else request.url.scheme
+    request["proto"] = normalize_proto_value(req_proto) if is_ip_trusted(remote, trusted_proxies) and req_proto else request.url.scheme
 
     return await handler(request)
 
