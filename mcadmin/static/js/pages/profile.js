@@ -6,13 +6,17 @@
         data: () => ({
             loaded: false,
             sessions: null,
-            password_form: {},
+            identities: null,
+            password_form: { current_password: "" },
             updating_password: false,
         }),
 
         async created() {
             try {
-                await this.fetchUserSessions();
+                await Promise.all([
+                    this.fetchSessions(),
+                    this.fetchIdentities(),
+                ]);
             } catch (error) {
                 notify.error(`Error fetching user sessions: ${error.message}`);
             } finally {
@@ -21,8 +25,12 @@
         },
 
         methods: {
-            async fetchUserSessions() {
+            async fetchSessions() {
                 this.sessions = await api.getUserSessions();
+            },
+
+            async fetchIdentities() {
+                this.identities = await api.getUserIdentities();
             },
 
             async deleteSession(session) {
@@ -36,10 +44,29 @@
                     const response = await api.deleteUserSession(session.id);
 
                     notify.success(response.message);
-                    await this.fetchUserSessions();
+                    await this.fetchSessions();
                 } catch (error) {
                     session.pending = false;
-                    
+
+                    notify.error(error.message);
+                }
+            },
+
+            async deleteUserIdentity(identity) {
+                if (!await confirm.show(`Are you sure you want to remove account identity ${identity.provider_name}? You won't be able to log in with this identity anymore.`)) {
+                    return;
+                }
+
+                try {
+                    identity.pending = true;
+
+                    const response = await api.deleteUserIdentity(identity.id);
+
+                    notify.success(response.message);
+                    await this.fetchIdentities();
+                } catch (error) {
+                    identity.pending = false;
+
                     notify.error(error.message);
                 }
             },
@@ -52,7 +79,7 @@
 
                     notify.success(response.message);
 
-                    this.password_form = {};
+                    this.password_form = { current_password: "" };
                 } catch (error) {
                     notify.error(`Error updating password: ${error.message}`);
                 } finally {

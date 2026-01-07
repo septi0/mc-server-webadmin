@@ -45,7 +45,7 @@ def _setup_sess(app: web.Application) -> None:
             cookie_name="mc-webadmin-sess",
             max_age=14 * 24 * 60 * 60,
             httponly=True,
-            samesite="Strict",
+            samesite="Lax",
         ),
     )
 

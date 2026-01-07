@@ -5,6 +5,9 @@ from .global_properties import GlobalProperties
 from .instance_backups import InstanceBackups
 from .instance_datapacks import InstanceDatapacks
 from .instance_mods import InstanceMods
+from .app_config import AppConfig
+from .oidc_providers import OIDCProviders
+from .user_identities import UserIdentities
 
 __all__ = [
     "Users",
@@ -14,4 +17,7 @@ __all__ = [
     "InstanceBackups",
     "InstanceDatapacks",
     "InstanceMods",
+    "AppConfig",
+    "OIDCProviders",
+    "UserIdentities",
 ]

@@ -11,7 +11,7 @@
                 const form = new FormData();
 
                 for (let [key, value] of Object.entries(data)) {
-                    if (typeof value === 'object' && value.constructor == Object && value !== null) {
+                    if (typeof value === 'object' && (value.constructor == Object || value instanceof Array) && value !== null) {
                         value = JSON.stringify(value);
                     }
 
@@ -171,7 +171,39 @@
         async deleteInstanceMod(instance_id, mod_id) {
             return this.fetch(`instances/${instance_id}/mods/${mod_id}`, "DELETE");
         },
-        
+
+        async getAuthMethods() {
+            return this.fetch("admin/auth_config/methods");
+        },
+
+        async getOIDCProviders() {
+            return this.fetch("admin/auth_config/oidc-providers");
+        },
+
+        async updateAuthMethods(data) {
+            return this.fetch("admin/auth_config/methods", "POST", data);
+        },
+
+        async createOIDCProvider(data) {
+            return this.fetch("admin/auth_config/oidc-providers", "POST", data);
+        },
+
+        async updateOIDCProvider(provider_id, data) {
+            return this.fetch(`admin/auth_config/oidc-providers/${provider_id}`, "POST", data);
+        },
+
+        async deleteOIDCProvider(provider_id) {
+            return this.fetch(`admin/auth_config/oidc-providers/${provider_id}`, "DELETE");
+        },
+
+        async getUserIdentities() {
+            return this.fetch("self/identities");
+        },
+
+        async deleteUserIdentity(identity_id) {
+            return this.fetch(`self/identities/${identity_id}`, "DELETE");
+        }
+
     };
 
 })(McServerWebadmin);

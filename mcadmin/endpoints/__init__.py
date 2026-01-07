@@ -3,7 +3,8 @@ from aiohttp import web
 from .dashboard import dashboard_routes
 from .server import server_routes
 from .auth import auth_routes
-from .admin import admin_routes
+from .admin_users import admin_users_routes
+from .admin_auth_config import admin_auth_config_routes
 from .user import user_routes
 from .logs import logs_routes
 from .terminal import terminal_routes
@@ -26,7 +27,8 @@ def setup(app: web.Application) -> None:
     app.add_routes(dashboard_routes)
     app.add_routes(server_routes)
     app.add_routes(auth_routes)
-    app.add_routes(admin_routes)
+    app.add_routes(admin_users_routes)
+    app.add_routes(admin_auth_config_routes)
     app.add_routes(user_routes)
     app.add_routes(logs_routes)
     app.add_routes(terminal_routes)

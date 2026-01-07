@@ -1,0 +1,82 @@
+{% extends "layout_auth.html" %}
+{% block title %}Link Account{% endblock %}
+
+{% block content %}
+
+<div class="card shadow-sm">
+    <div class="card-body p-4">
+        <div class="text-center mb-3">
+            <i class="bi bi-check-circle fs-1 text-success"></i>
+            <h1 class="h4 mt-2 mb-0">Link Account</h1>
+            <div class="text-muted small">You have successfully authenticated with {{ provider.name }} but no account exists. You can register a new account or link it to an existing one.</div>
+        </div>
+
+        {% if message %}
+        <div class="alert alert-{{ message[0] }}" role="alert">{{ message[1] }}</div>
+        {% endif %}
+
+        {% if allow_registration or allow_link_account %}
+        <ul class="nav nav-tabs nav-fill mb-3">
+            <li class="nav-item">
+                <a class="nav-link {% if active_tab == 'register' %}active{% endif %}" data-bs-toggle="tab" data-bs-target="#register-tab-content" href="#" role="tab">Register</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if active_tab == 'link_account' %}active{% endif %}" data-bs-toggle="tab" data-bs-target="#link-account-tab-content" href="#" role="tab">Link Account</a>
+            </li>
+        </ul>
+        {% endif %}
+
+        <div class="tab-content">
+            <div id="register-tab-content" role="tabpanel" class="tab-pane fade {% if active_tab == 'register' %}show active{% endif %}">
+                {% if allow_registration %}
+                <form method="post" action="">
+                    <input type="hidden" name="action" value="register">
+                    <div class="mb-2">
+                        <label for="r_username" class="form-label d-flex justify-content-between">
+                            <span>Username</span>
+                        </label>
+                        <input id="r_username" name="username" type="text" class="form-control" value="{{ suggested_username }}" required>
+                    </div>
+                    <button class="btn btn-primary w-100 mt-3" type="submit">
+                        <i class="bi bi-person-plus me-1"></i>Register
+                    </button>
+                </form>
+                {% else %}
+                <div class="text-muted">
+                    Registration is disabled. Please contact your administrator.
+                </div>
+                {% endif %}
+            </div>
+
+            <div id="link-account-tab-content" role="tabpanel" class="tab-pane fade {% if active_tab == 'link_account' %}show active{% endif %}">
+                {% if allow_link_account %}
+                <form method="post" action="">
+                    <input type="hidden" name="action" value="link_account">
+                    <div class="mb-3">
+                        <label for="l_username" class="form-label">Username</label>
+                        <input id="l_username" name="username" type="text" class="form-control" required>
+                    </div>
+
+                    <div class="mb-2">
+                        <label for="l_password" class="form-label d-flex justify-content-between">
+                            <span>Password</span>
+                        </label>
+                        <input id="l_password" name="password" type="password" class="form-control" required>
+                    </div>
+
+                    <button class="btn btn-primary w-100 mt-3" type="submit">
+                        <i class="bi bi-box-arrow-in-right me-1"></i>Link Account
+                    </button>
+                </form>
+                {% else %}
+                <div class="text-muted">
+                    Account linking is disabled. Please contact your administrator.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

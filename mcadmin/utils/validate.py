@@ -17,7 +17,7 @@ def validate_request(schema: Type[BaseModel]) -> Callable:
         async def wrapper(request):
             try:
                 data = await request.post()
-                schema.model_validate(data)
+                schema.model_validate(dict(data))
             except (ValidationError, ValueError) as e:
                 errors = _format_errors(e, schema)
                 return web.json_response({"status": "error", "message": errors}, status=403)

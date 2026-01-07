@@ -3,7 +3,7 @@ import json
 from aiohttp import web
 from packaging import version
 from mcadmin.utils.web import get_di
-from mcadmin.utils.validate import validate_request
+from mcadmin.utils.validate import validate_request, require_roles
 from mcadmin.services.instances import InstancesService
 from mcadmin.schemas.instances import CreateInstanceSchema, UpdateInstanceSchema
 
@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 @instances_routes.get("/api/instances")
+@require_roles(["user", "admin"])
 async def instances_get(request: web.Request):
     instances_service: InstancesService = get_di(request).instances_service
 
@@ -41,6 +42,7 @@ async def instances_get(request: web.Request):
 
 
 @instances_routes.get("/api/instances/active")
+@require_roles(["user", "admin"])
 async def active_instance_get(request: web.Request):
     instances_service: InstancesService = get_di(request).instances_service
 
@@ -62,6 +64,7 @@ async def active_instance_get(request: web.Request):
 
 
 @instances_routes.post("/api/instances")
+@require_roles(["user", "admin"])
 @validate_request(CreateInstanceSchema)
 async def instance_create(request: web.Request):
     instances_service: InstancesService = get_di(request).instances_service
@@ -104,6 +107,7 @@ async def instance_create(request: web.Request):
 
 
 @instances_routes.post("/api/instances/{instance_id}")
+@require_roles(["user", "admin"])
 @validate_request(UpdateInstanceSchema)
 async def instance_update(request: web.Request):
     instances_service: InstancesService = get_di(request).instances_service
@@ -130,6 +134,7 @@ async def instance_update(request: web.Request):
 
 
 @instances_routes.delete("/api/instances/{instance_id}")
+@require_roles(["user", "admin"])
 async def instance_delete(request: web.Request):
     instances_service: InstancesService = get_di(request).instances_service
 
@@ -151,6 +156,7 @@ async def instance_delete(request: web.Request):
 
 
 @instances_routes.post("/api/instances/{instance_id}/activate")
+@require_roles(["user", "admin"])
 async def instance_activate(request: web.Request):
     instances_service: InstancesService = get_di(request).instances_service
 

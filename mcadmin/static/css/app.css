@@ -30,7 +30,7 @@ html, body {
     min-width: 0;
 }
 
-.nav-link.active {
+.sidebar .nav-link.active {
     background: var(--bs-secondary-bg);
     border-radius: .5rem;
 }
@@ -190,4 +190,30 @@ html, body {
 
 #offcanvasInstanceOptions {
     height: auto;
+}
+
+.text-divider {
+    display: flex;
+    align-items: center;
+    color: #9ca3af;
+    /* light gray text */
+    font-size: 14px;
+    margin: 20px 0;
+}
+
+.text-divider::before,
+.text-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background-color: #2f3338;
+    /* line color */
+}
+
+.text-divider::before {
+    margin-right: 12px;
+}
+
+.text-divider::after {
+    margin-left: 12px;
 }

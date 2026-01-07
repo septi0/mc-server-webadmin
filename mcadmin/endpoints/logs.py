@@ -4,18 +4,21 @@ import aiohttp_jinja2
 from aiohttp import web
 from mcadmin.utils.web import get_di, drain_queue_into_websocket
 from mcadmin.libraries.queue_dispatcher import QueueDispatcher
+from mcadmin.utils.validate import require_roles
 
 logs_routes = web.RouteTableDef()
 logger = logging.getLogger(__name__)
 
 
 @logs_routes.get("/logs")
+@require_roles(["user", "admin"])
 @aiohttp_jinja2.template("logs.html")
 async def logs_template(request: web.Request):
     return {}
 
 
 @logs_routes.get("/ws/logs")
+@require_roles(["user", "admin"])
 async def logs_ws(request: web.Request) -> web.WebSocketResponse:
     ev_dispatcher: QueueDispatcher = get_di(request).mc_server_ev_dispatcher
     ws = web.WebSocketResponse(heartbeat=30, compress=True)

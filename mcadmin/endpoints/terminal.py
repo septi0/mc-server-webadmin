@@ -4,18 +4,21 @@ import aiohttp_jinja2
 from aiohttp import web
 from mcadmin.utils.web import get_di
 from mcadmin.services.server import ServerService
+from mcadmin.utils.validate import require_roles
 
 terminal_routes = web.RouteTableDef()
 logger = logging.getLogger(__name__)
 
 
 @terminal_routes.get("/terminal")
+@require_roles(["user", "admin"])
 @aiohttp_jinja2.template("terminal.html")
 async def terminal_template(request: web.Request):
     return {}
 
 
 @terminal_routes.get("/ws/terminal")
+@require_roles(["user", "admin"])
 async def terminal_ws(request: web.Request) -> web.WebSocketResponse:
     server_service: ServerService = get_di(request).server_service
     ws = web.WebSocketResponse(heartbeat=30, compress=True)

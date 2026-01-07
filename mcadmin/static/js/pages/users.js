@@ -69,7 +69,7 @@
                     await this.fetchUsers();
                 } catch (error) {
                     this.update_user_ref.pending = false;
-                    
+
                     notify.error(error.message);
                 } finally {
                     this.updating_user = false;
@@ -83,7 +83,7 @@
 
                 try {
                     user.pending = true;
-                    
+
                     const response = await api.deleteUser(user.id);
 
                     notify.success(response.message);
@@ -96,24 +96,19 @@
             },
 
             openCreateUserModal() {
-                this.resetCreateUserModal();
+                this.resetCreateUserForm();
+
                 this.create_user_modal.show();
             },
 
             openUpdateUserModal(user) {
                 this.setUpdateUserRef(user);
-
-                this.update_user_form = {
-                    id: user.id,
-                    username: user.username,
-                    password: '',
-                    role: user.role,
-                };
+                this.setUpdateUserForm(user);
 
                 this.update_user_modal.show();
             },
 
-            resetCreateUserModal() {
+            resetCreateUserForm() {
                 this.create_user_form = {
                     role: 'user',
                 };
@@ -121,6 +116,15 @@
 
             setUpdateUserRef(user) {
                 this.update_user_ref = user;
+            },
+
+            setUpdateUserForm(user) {
+                this.update_user_form = {
+                    id: user.id,
+                    username: user.username,
+                    password: '',
+                    role: user.role,
+                };
             },
 
         }

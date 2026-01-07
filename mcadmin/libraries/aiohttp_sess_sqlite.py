@@ -76,7 +76,7 @@ class SqliteTortoiseStorage(AbstractStorage):
 
             await self._sess_model.create(
                 token=token,
-                user_id=sess_data.get("user_id"),
+                user_id=sess_data.get("user_id", 0),
                 ip=self._get_ip(request),
                 user_agent=request.headers.get("User-Agent", ""),
                 device=self._ua_to_device(request.headers.get("User-Agent", "")),
@@ -90,7 +90,7 @@ class SqliteTortoiseStorage(AbstractStorage):
                 self.save_cookie(response, "", max_age=session.max_age)
                 await self._sess_model.filter(token=token).delete()
             else:
-                await self._sess_model.filter(token=token).update(data=data_str, updated_at=datetime.now(timezone.utc))
+                await self._sess_model.filter(token=token).update(user_id=sess_data.get("user_id", 0), data=data_str, updated_at=datetime.now(timezone.utc))
 
     async def _sess_gc(self) -> None:
         if random.randint(1, 100) == 1:

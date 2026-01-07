@@ -3,12 +3,14 @@ import aiohttp_jinja2
 from aiohttp import web
 from mcadmin.utils.web import get_di
 from mcadmin.services.instances import InstancesService
+from mcadmin.utils.validate import require_roles
 
 instance_backups_routes = web.RouteTableDef()
 logger = logging.getLogger(__name__)
 
 
 @instance_backups_routes.get("/instances/{instance_id}/backups")
+@require_roles(["user", "admin"])
 @aiohttp_jinja2.template("instance_backups.html")
 async def instance_backups_template(request: web.Request):
     instances_service: InstancesService = get_di(request).instances_service
@@ -27,6 +29,7 @@ async def instance_backups_template(request: web.Request):
 
 
 @instance_backups_routes.get("/api/instances/{instance_id}/backups")
+@require_roles(["user", "admin"])
 async def instance_backups_get(request: web.Request):
     instances_service: InstancesService = get_di(request).instances_service
 
@@ -58,6 +61,7 @@ async def instance_backups_get(request: web.Request):
 
 
 @instance_backups_routes.post("/api/instances/{instance_id}/backups")
+@require_roles(["user", "admin"])
 async def instance_backup_create(request: web.Request):
     instances_service: InstancesService = get_di(request).instances_service
 
@@ -78,6 +82,7 @@ async def instance_backup_create(request: web.Request):
 
 
 @instance_backups_routes.delete("/api/instances/{instance_id}/backups/{backup_id}")
+@require_roles(["user", "admin"])
 async def instance_backup_delete(request: web.Request):
     instances_service: InstancesService = get_di(request).instances_service
 
@@ -104,6 +109,7 @@ async def instance_backup_delete(request: web.Request):
 
 
 @instance_backups_routes.post("/api/instances/{instance_id}/backups/{backup_id}/restore")
+@require_roles(["user", "admin"])
 async def instance_backup_restore(request: web.Request):
     instances_service: InstancesService = get_di(request).instances_service
 

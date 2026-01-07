@@ -1,5 +1,7 @@
 import os
 import asyncio
+from mcadmin.services.auth_config import AuthConfigService
+from mcadmin.services.oidc import OIDCService
 from mcadmin.utils.hash import hash_str
 from mcadmin.libraries.mc_server import McServerRunner, McServerInstMgr
 from mcadmin.libraries.di_container import DiContainer
@@ -56,3 +58,5 @@ def setup_di(deps: DiContainer, *, config: dict, data_directory: str = "") -> No
     deps.sessions_service = SessionsService()
     deps.server_service = ServerService(mc_server_runner=deps.mc_server_runner, mc_server_inst_mgr=deps.mc_server_inst_mgr)
     deps.instances_service = InstancesService(server_service=deps.server_service, mc_server_runner=deps.mc_server_runner, mc_server_inst_mgr=deps.mc_server_inst_mgr)
+    deps.auth_config_service = AuthConfigService()
+    deps.oidc_service = OIDCService()

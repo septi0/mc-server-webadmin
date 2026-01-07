@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, model_validator
-from typing import Optional
+from typing import Optional, Literal
 
 
 class UpdatePasswordSchema(BaseModel):
@@ -16,13 +16,18 @@ class UpdatePasswordSchema(BaseModel):
 class CreateUserSchema(BaseModel):
     username: str = Field(title="Username", min_length=3, max_length=100)
     password: str = Field(title="Password", min_length=6, max_length=100)
-    role: str = Field(title="Role", default="user")
+    role: Literal["user", "admin"] = Field(title="Role", default="user")
+
+
+class CreatePasswordlessUserSchema(BaseModel):
+    username: str = Field(title="Username", min_length=3, max_length=100)
+    role: Literal["user", "admin"] = Field(title="Role", default="user")
+
 
 class UpdateUserSchema(BaseModel):
-    id: str = Field(title="User ID")
     password: Optional[str] = Field(default=None, title="Password", min_length=6, max_length=100)
-    role: str = Field(title="Role", default="user")
-    
+    role: Literal["user", "admin"] = Field(title="Role", default="user")
+
 class AuthSchema(BaseModel):
     username: str = Field(title="Username", min_length=3, max_length=100)
     password: str = Field(title="Password", min_length=6, max_length=100)

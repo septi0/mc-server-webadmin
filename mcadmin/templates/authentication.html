@@ -1,0 +1,254 @@
+{% extends "layout.html" %}
+{% set active = 'admin.authentication' %}
+{% block title %}Authentication{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-3">Authentication</h2>
+<p class="text-muted mb-3">Manage authentication settings</p>
+
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-start">
+        <span class="fw-semibold"><i class="bi bi-lock me-2"></i>Authentication Methods</span>
+    </div>
+
+    <div class="card-body">
+        <form action="#" class="row g-3" @submit.prevent="updateAuthMethods">
+            <div class="col-12">
+                <div class="form-check">
+                    <input class="form-check-input" id="auth_local" type="checkbox" v-model="auth_methods" value="local">
+                    <label class="form-check-label" for="auth_local">Local Authentication</label>
+                    <div class="text-muted small">Allow login with username and password</div>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" id="auth_oidc" type="checkbox" v-model="auth_methods" value="oidc">
+                    <label class="form-check-label" for="auth_oidc">OpenID Connect Authentication</label>
+                    <div class="text-muted small">Allow login with external OIDC providers</div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary flex-fill flex-lg-grow-0" :disabled="updating_auth_methods">
+                        <div class="spinner-border spinner-border-sm me-1" v-if="updating_auth_methods" v-cloak></div>
+                        <i class="bi bi-check2-circle me-1" v-else></i>
+                        Save Preferences
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="card-footer">
+        <span class="text-warning small"><i class="bi bi-exclamation-triangle me-1"></i> At least one authentication method must be enabled.</span>
+    </div>
+</div>
+
+<div class="card" v-if="show_oidc_card">
+    <div class="card-header d-flex justify-content-between align-items-start">
+        <span class="fw-semibold"><i class="bi bi-diagram-3 me-2"></i>OIDC Providers</span>
+        <button class="btn btn-outline-primary btn-sm" @click="openCreateOIDCProviderModal">
+            <i class="bi bi-plus-lg me-1"></i>Create Provider
+        </button>
+    </div>
+
+    <div class="card-body p-0">
+        <div class="oidc-providers-panel">
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item" v-for="p in oidc_providers" v-cloak>
+                    <div class="row-loading-overlay" v-if="p.pending" v-cloak>
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-start gap-3">
+                        <div>
+                            <div class="fw-semibold">
+                                <span v-text="p.name"></span>
+                                <span class="badge text-bg-success ms-2" v-if="p.default">Default</span>
+                            </div>
+                            <div class="text-muted small">
+                                Created at: <strong v-text="$formatLocalDate(p.created_at)"></strong><br>
+                                Allow registration: <strong v-text="p.allow_registration ? 'Enabled' : 'Disabled'"></strong><br>
+                                Auto launch: <strong v-text="p.auto_launch ? 'Enabled' : 'Disabled'"></strong>
+                            </div>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2 list-item-actions">
+                            <button class="btn btn-sm btn-outline-secondary" @click="openUpdateOIDCProviderModal(p)">
+                                <i class="bi bi-gear"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" :disabled="p.default" @click="deleteOIDCProvider(p)">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+            <div class="text-muted text-center m-3" v-if="oidc_providers !== null && oidc_providers.length === 0" v-cloak>
+                No OIDC providers created yet. Click the "<i class="bi bi-plus-lg me-1"></i>Create Provider" button to add one.
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Provider Modal -->
+<div class="modal fade" ref="create_oidc_provider_modal" tabindex="-1" aria-labelledby="createOIDCProviderModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form action="#" autocomplete="off" @submit.prevent="createOIDCProvider">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createOIDCProviderModalLabel">
+                        <i class="bi bi-magic me-2"></i>Create OIDC Provider
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="c_name" class="form-label">Name</label>
+                        <input id="c_name" type="text" class="form-control" required autocomplete="off" v-model="create_oidc_provider_form.name" placeholder="MyProvider">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="c_url" class="form-label">Issuer URL</label>
+                        <input id="c_url" type="text" class="form-control" required autocomplete="off" v-model="create_oidc_provider_form.config.issuer_url" placeholder="https://example.com">
+                        <div class="form-text">The URL of the OIDC provider's authorization server.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="c_client_id" class="form-label">Client ID</label>
+                        <input id="c_client_id" type="text" class="form-control" required autocomplete="off" v-model="create_oidc_provider_form.config.client_id">
+                        <div class="form-text">The Client ID obtained from the OIDC provider.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="c_client_secret" class="form-label">Client Secret</label>
+                        <input id="c_client_secret" type="password" class="form-control" required autocomplete="off" v-model="create_oidc_provider_form.config.client_secret">
+                        <div class="form-text">The Client Secret obtained from the OIDC provider.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="c_scope" class="form-label">Scope</label>
+                        <input id="c_scope" type="text" class="form-control" required autocomplete="off" v-model="create_oidc_provider_form.config.scope">
+                        <div class="form-text">The OIDC scopes to request (e.g., openid profile).</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="c_user_claim" class="form-label">User Claim</label>
+                        <input id="c_user_claim" type="text" class="form-control" required autocomplete="off" v-model="create_oidc_provider_form.user_claim">
+                        <div class="form-text">Set the username to the value of this claim.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" id="c_allow_registration" type="checkbox" v-model="create_oidc_provider_form.allow_registration">
+                            <label class="form-check-label" for="c_allow_registration">Allow Registration</label>
+                            <div class="form-text">Automatically create a local user account upon first login.</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" id="c_auto_launch" type="checkbox" v-model="create_oidc_provider_form.auto_launch">
+                            <label class="form-check-label" for="c_auto_launch">Auto Launch</label>
+                            <div class="form-text">Start the OIDC login flow automatically upon navigating to the login page.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary flex-fill flex-lg-grow-0" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary flex-fill flex-lg-grow-0" :disabled="creating_provider">
+                        <div class="spinner-border spinner-border-sm me-1" v-if="creating_provider" v-cloak></div>
+                        <i class="bi bi-check2-circle me-1" v-else></i>
+                        Create Provider
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Update Provider Modal -->
+<div class="modal fade" ref="update_oidc_provider_modal" tabindex="-1" aria-labelledby="updateOIDCProviderModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form action="#" autocomplete="off" @submit.prevent="updateOIDCProvider">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="updateOIDCProviderModalLabel">
+                        <i class="bi bi-magic me-2"></i>Update OIDC Provider
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="u_name" class="form-label">Name</label>
+                        <input id="u_name" type="text" class="form-control" autocomplete="off" v-model="update_oidc_provider_form.name" disabled>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="u_url" class="form-label">Issuer URL</label>
+                        <input id="u_url" type="text" class="form-control" required autocomplete="off" v-model="update_oidc_provider_form.config.issuer_url" placeholder="https://example.com">
+                        <div class="form-text">The URL of the OIDC provider's authorization server.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="u_client_id" class="form-label">Client ID</label>
+                        <input id="u_client_id" type="text" class="form-control" required autocomplete="off" v-model="update_oidc_provider_form.config.client_id">
+                        <div class="form-text">The Client ID obtained from the OIDC provider.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="u_client_secret" class="form-label">Client Secret</label>
+                        <input id="u_client_secret" type="password" class="form-control" autocomplete="off" v-model="update_oidc_provider_form.config.client_secret">
+                        <div class="form-text">The Client Secret obtained from the OIDC provider.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="u_scope" class="form-label">Scope</label>
+                        <input id="u_scope" type="text" class="form-control" required autocomplete="off" v-model="update_oidc_provider_form.config.scope">
+                        <div class="form-text">The OIDC scopes to request (e.g., openid profile).</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="u_user_claim" class="form-label">User Claim</label>
+                        <input id="u_user_claim" type="text" class="form-control" required autocomplete="off" v-model="update_oidc_provider_form.user_claim">
+                        <div class="form-text">Set the username to the value of this claim.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" id="u_allow_registration" type="checkbox" v-model="update_oidc_provider_form.allow_registration">
+                            <label class="form-check-label" for="u_allow_registration">Allow Registration</label>
+                            <div class="form-text">Automatically create a local user account upon first login.</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" id="u_auto_launch" type="checkbox" v-model="update_oidc_provider_form.auto_launch">
+                            <label class="form-check-label" for="u_auto_launch">Auto Launch</label>
+                            <div class="form-text">Start the OIDC login flow automatically upon navigating to the login page.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary flex-fill flex-lg-grow-0" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary flex-fill flex-lg-grow-0" :disabled="updating_oidc_provider">
+                        <div class="spinner-border spinner-border-sm me-1" v-if="updating_oidc_provider" v-cloak></div>
+                        <i class="bi bi-check2-circle me-1" v-else></i>
+                        Update Provider
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="/static/js/pages/authentication.js?v={{ build_version }}"></script>
+{% endblock %}

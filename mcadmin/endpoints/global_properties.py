@@ -2,12 +2,14 @@ import logging
 from aiohttp import web
 from mcadmin.utils.web import get_di
 from mcadmin.services.instances import InstancesService
+from mcadmin.utils.validate import require_roles
 
 global_properties_routes = web.RouteTableDef()
 logger = logging.getLogger(__name__)
 
 
 @global_properties_routes.get("/api/global-properties")
+@require_roles(["user", "admin"])
 async def global_properties_get(request: web.Request):
     instances_service: InstancesService = get_di(request).instances_service
 
@@ -35,6 +37,7 @@ async def global_properties_get(request: web.Request):
 
 
 @global_properties_routes.post("/api/global-properties")
+@require_roles(["user", "admin"])
 async def global_properties_update(request: web.Request):
     instances_service: InstancesService = get_di(request).instances_service
 

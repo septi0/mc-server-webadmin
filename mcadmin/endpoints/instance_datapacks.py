@@ -3,7 +3,7 @@ import aiohttp_jinja2
 from aiohttp import web
 from mcadmin.utils.web import get_di, get_filename
 from mcadmin.services.instances import InstancesService
-from mcadmin.utils.validate import validate_request
+from mcadmin.utils.validate import validate_request, require_roles
 from mcadmin.schemas.instances import AddInstanceDatapackSchema
 
 instance_datapacks_routes = web.RouteTableDef()
@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 @instance_datapacks_routes.get("/instances/{instance_id}/datapacks")
+@require_roles(["user", "admin"])
 @aiohttp_jinja2.template("instance_datapacks.html")
 async def instance_datapacks_template(request: web.Request):
     instances_service: InstancesService = get_di(request).instances_service
@@ -32,6 +33,7 @@ async def instance_datapacks_template(request: web.Request):
 
 
 @instance_datapacks_routes.get("/api/instances/{instance_id}/datapacks")
+@require_roles(["user", "admin"])
 async def instance_datapacks_get(request: web.Request):
     instances_service: InstancesService = get_di(request).instances_service
 
@@ -67,6 +69,7 @@ async def instance_datapacks_get(request: web.Request):
 
 
 @instance_datapacks_routes.post("/api/instances/{instance_id}/datapacks")
+@require_roles(["user", "admin"])
 @validate_request(AddInstanceDatapackSchema)
 async def instance_datapack_add(request: web.Request):
     instances_service: InstancesService = get_di(request).instances_service
@@ -101,6 +104,7 @@ async def instance_datapack_add(request: web.Request):
 
 
 @instance_datapacks_routes.post("/api/instances/{instance_id}/datapacks/{datapack_id}")
+@require_roles(["user", "admin"])
 async def instance_datapack_edit(request: web.Request):
     instances_service: InstancesService = get_di(request).instances_service
 
@@ -133,6 +137,7 @@ async def instance_datapack_edit(request: web.Request):
 
 
 @instance_datapacks_routes.delete("/api/instances/{instance_id}/datapacks/{datapack_id}")
+@require_roles(["user", "admin"])
 async def instance_datapack_delete(request: web.Request):
     instances_service: InstancesService = get_di(request).instances_service
 
