@@ -143,5 +143,5 @@
 
 {% block scripts %}
 {{ super() }}
-<script src="/static/js/pages/dashboard.js?v={{ build_version }}"></script>
+<script src="{{ base_url }}static/js/pages/dashboard.js?v={{ build_version }}"></script>
 {% endblock %}

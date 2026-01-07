@@ -250,5 +250,5 @@
 
 {% block scripts %}
 {{ super() }}
-<script src="/static/js/pages/authentication.js?v={{ build_version }}"></script>
+<script src="{{ base_url }}static/js/pages/authentication.js?v={{ build_version }}"></script>
 {% endblock %}

@@ -11,6 +11,7 @@ A modern web-based admin panel for managing Minecraft servers, worlds, and playe
 - User authentication and role-based access
 - View server logs and terminal output
 - Responsive, mobile-friendly interface
+- Openid Connect authentication support
 
 ## Screenshots
 
@@ -62,8 +63,9 @@ Common configuration options:
 
 - `MCADMIN_JAVA_MIN_MEMORY`: The minimum amount of memory to allocate to the Java process (default: `1G`)
 - `MCADMIN_JAVA_MAX_MEMORY`: The maximum amount of memory to allocate to the Java process (default: `1G`)
-- `MCADMIN_WEB_TRUSTED_PROXIES`: Comma-separated list of trusted proxy IPs
 - `MCADMIN_DISPLAY_IP`: The IP address to display for connecting to the Minecraft server
+- `MCADMIN_WEB_TRUSTED_PROXIES`: Comma-separated list of trusted proxy IPs
+- `MCADMIN_WEB_BASE_URL`: The base URL for the web interface (default: `/`)
 
 **Note!** When running the application as a container (or using proxies / port forwarding, etc.), the real IP and port are not directly accessible to the app and it won't display the correct connect information. To fix this, use `MCADMIN_DISPLAY_IP` (or `MCADMIN_DISPLAY_HOST`), and `MCADMIN_DISPLAY_PORT` configuration options.
 

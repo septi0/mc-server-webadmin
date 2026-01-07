@@ -87,19 +87,19 @@
                                                 </a>
                                             </li>
                                             <li>
-                                                <a class="dropdown-item" :href="`/instances/${i.id}/datapacks`" :class="{ disabled: !i.server_capabilities.includes('datapacks') }">
+                                                <a class="dropdown-item" :href="`{{ base_url }}instances/${i.id}/datapacks`" :class="{ disabled: !i.server_capabilities.includes('datapacks') }">
                                                     <i class="bi bi-box me-2"></i>
                                                     Datapacks
                                                 </a>
                                             </li>
                                             <li>
-                                                <a class="dropdown-item" :href="`/instances/${i.id}/mods`" :class="{ disabled: !i.server_capabilities.includes('mods') }">
+                                                <a class="dropdown-item" :href="`{{ base_url }}instances/${i.id}/mods`" :class="{ disabled: !i.server_capabilities.includes('mods') }">
                                                     <i class="bi bi-gear me-2"></i>
                                                     Mods
                                                 </a>
                                             </li>
                                             <li>
-                                                <a class="dropdown-item" :href="`/instances/${i.id}/backups`">
+                                                <a class="dropdown-item" :href="`{{ base_url }}instances/${i.id}/backups`">
                                                     <i class="bi bi-cloud-arrow-up me-2"></i>
                                                     Backups
                                                 </a>
@@ -201,17 +201,17 @@
                 <i class="bi bi-pencil-square me-2"></i>Edit Instance
             </li>
             <li class="list-group-item" :class="{ disabled: !update_instance_ref.server_capabilities.includes('datapacks') }">
-                <a :href="`/instances/${update_instance_ref.id}/datapacks`" class="text-decoration-none text-reset d-block">
+                <a :href="`{{ base_url }}instances/${update_instance_ref.id}/datapacks`" class="text-decoration-none text-reset d-block">
                     <i class="bi bi-box me-2"></i>Instance Datapacks
                 </a>
             </li>
             <li class="list-group-item" :class="{ disabled: !update_instance_ref.server_capabilities.includes('mods') }">
-                <a :href="`/instances/${update_instance_ref.id}/mods`" class="text-decoration-none text-reset d-block">
+                <a :href="`{{ base_url }}instances/${update_instance_ref.id}/mods`" class="text-decoration-none text-reset d-block">
                     <i class="bi bi-gear me-2"></i>Instance Mods
                 </a>
             </li>
             <li class="list-group-item">
-                <a :href="`/instances/${update_instance_ref.id}/backups`" class="text-decoration-none text-reset d-block">
+                <a :href="`{{ base_url }}instances/${update_instance_ref.id}/backups`" class="text-decoration-none text-reset d-block">
                     <i class="bi bi-cloud-arrow-up me-2"></i>Instance Backups
                 </a>
             </li>
@@ -358,5 +358,5 @@
 
 {% block scripts %}
 {{ super() }}
-<script src="/static/js/pages/settings.js?v={{ build_version }}"></script>
+<script src="{{ base_url }}static/js/pages/settings.js?v={{ build_version }}"></script>
 {% endblock %}

@@ -34,7 +34,10 @@ def _setup_jinja(app: web.Application) -> None:
         },
     )
 
-    env.globals.update(build_version=app["di"].build_version)
+    env.globals.update(
+        build_version=app["di"].build_version,
+        base_url=app["di"].base_url
+    )
 
 
 def _setup_sess(app: web.Application) -> None:

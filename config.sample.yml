@@ -14,3 +14,4 @@ web_server:
     ip: "0.0.0.0" # (env var equivalent: MCADMIN_WEB_IP - Not applicable in container) Web server IP address
     port: 8000 # (env var equivalent: MCADMIN_WEB_PORT - Not applicable in container) Web server port
     trusted_proxies: "" # (env var equivalent: MCADMIN_WEB_TRUSTED_PROXIES) List of trusted proxy IP addresses (comma-separated)
+    base_url: "/" # (env var equivalent: MCADMIN_WEB_BASE_URL) Base URL for the web server

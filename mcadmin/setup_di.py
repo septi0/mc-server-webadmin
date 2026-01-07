@@ -33,9 +33,9 @@ def setup_di(deps: DiContainer, *, config: dict, data_directory: str = "") -> No
         mc_server_config["server_port"] = getattr(McServerConfigSchema.model_fields.get("server_port"), "default")
         mc_server_config["rcon_port"] = getattr(McServerConfigSchema.model_fields.get("rcon_port"), "default")
 
-        # unset web server ip, port
         web_server_config["ip"] = getattr(WebServerConfigSchema.model_fields.get("ip"), "default")
         web_server_config["port"] = getattr(WebServerConfigSchema.model_fields.get("port"), "default")
+        web_server_config["base_url"] = getattr(WebServerConfigSchema.model_fields.get("base_url"), "default")
 
     mc_server_config["server_ip"] = str(mc_server_config["server_ip"])
     mc_server_config["display_ip"] = str(mc_server_config["display_ip"]) if mc_server_config["display_ip"] else None
@@ -44,6 +44,7 @@ def setup_di(deps: DiContainer, *, config: dict, data_directory: str = "") -> No
     deps.mc_server_config = mc_server_config
     deps.web_server_config = web_server_config
     deps.build_version = build_version
+    deps.base_url = deps.web_server_config["base_url"].rstrip("/") + "/"
 
     # queues
     deps.mc_server_ev_queue = asyncio.Queue()

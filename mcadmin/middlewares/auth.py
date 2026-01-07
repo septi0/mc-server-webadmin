@@ -4,6 +4,7 @@ import logging
 from datetime import datetime, timezone
 from aiohttp import web
 from aiohttp_session import get_session
+from mcadmin.utils.web import get_di
 
 __all__ = ["auth_middleware"]
 
@@ -15,6 +16,7 @@ async def auth_middleware(request, handler):
     if request.path.startswith("/static/"):
         return await handler(request)
 
+    base_url: str = get_di(request).base_url
     session = await get_session(request)
 
     user_id = session.get("user_id", 0)
@@ -28,16 +30,16 @@ async def auth_middleware(request, handler):
 
     if required_roles and role not in required_roles:
         # APIs return 401
-        if request.path.startswith("/api/"):
+        if request.path.startswith(f"{base_url}api/"):
             return web.json_response({"error": "denied"}, status=401)
 
         if role == "guest" or role == "oidc":
             # pages redirect to login
             next_qs = urllib.parse.quote(str(request.rel_url))
-            raise web.HTTPFound(f"/login?redirect={next_qs}")
+            raise web.HTTPFound(f"{base_url}login?redirect={next_qs}")
         else:
             # other roles redirect to dashboard
-            raise web.HTTPFound("/dashboard")
+            raise web.HTTPFound(f"{base_url}dashboard")
 
     if user_id:
         session["last_activity"] = datetime.now(timezone.utc).timestamp()

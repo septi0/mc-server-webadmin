@@ -23,6 +23,7 @@ async def login_template(request: web.Request):
     users_service: UsersService = get_di(request).users_service
     auth_config_service: AuthConfigService = get_di(request).auth_config_service
     oidc_service: OIDCService = get_di(request).oidc_service
+    base_url: str = get_di(request).base_url
     data = {}
 
     auth_methods = await auth_config_service.get_auth_methods()
@@ -36,7 +37,7 @@ async def login_template(request: web.Request):
         auto_launch_provider = next((p for p in oidc_providers if p.auto_launch), None)
 
         if auto_launch_provider:
-            raise web.HTTPFound(f"/login/oidc/{auto_launch_provider.id}")
+            raise web.HTTPFound(f"{base_url}login/oidc/{auto_launch_provider.id}")
 
     data["local_login"] = local_login
     data["oidc_login"] = oidc_login
@@ -72,7 +73,7 @@ async def login_template(request: web.Request):
         session["auth_method"] = "local"
 
         logger.info(f"New login for user '{username}' (ip: {request['real_ip']})")
-        raise web.HTTPFound(next_url if next_url else "/dashboard")
+        raise web.HTTPFound(next_url if next_url else f"{base_url}dashboard")
 
     logger.warning(f"Failed login attempt for user '{username}' (ip: {request['real_ip']})")
 
@@ -87,13 +88,14 @@ async def login_template(request: web.Request):
 async def login_oidc_redirect(request: web.Request):
     auth_config_service: AuthConfigService = get_di(request).auth_config_service
     oidc_service: OIDCService = get_di(request).oidc_service
+    base_url: str = get_di(request).base_url
 
     provider_id = request.match_info.get("provider_id", 0)
     auth_methods = await auth_config_service.get_auth_methods()
     oidc_login = auth_methods and "oidc" in auth_methods
 
     if not oidc_login:
-        raise web.HTTPFound("/login")
+        raise web.HTTPFound(f"{base_url}login")
 
     provider = await oidc_service.get_oidc_provider(id=provider_id)
 
@@ -103,7 +105,7 @@ async def login_oidc_redirect(request: web.Request):
     session = await get_session(request)
     state = secrets.token_urlsafe(32)
     nonce = secrets.token_urlsafe(32)
-    redirect_uri = f"{request['proto']}://{request.host}/login/oidc/{provider_id}/callback"
+    redirect_uri = f"{request['proto']}://{request.host}/{base_url}/login/oidc/{provider_id}/callback"
     auth_url = await oidc_service.gen_oidc_authorization_url(provider.config, redirect_uri=redirect_uri, state=state, nonce=nonce)
 
     session["oidc_state"] = state
@@ -120,6 +122,7 @@ async def login_oidc_redirect(request: web.Request):
 async def login_oidc_callback(request: web.Request):
     oidc_service: OIDCService = get_di(request).oidc_service
     users_service: UsersService = get_di(request).users_service
+    base_url: str = get_di(request).base_url
 
     provider_id = request.match_info.get("provider_id", 0)
     provider = await oidc_service.get_oidc_provider(id=provider_id)
@@ -149,7 +152,7 @@ async def login_oidc_callback(request: web.Request):
         logger.warning(f"Invalid state parameter: {received_state} != {expected_state}")
         return web.Response(text="Invalid state parameter", status=400)
 
-    redirect_uri = f"{request['proto']}://{request.host}/login/oidc/{provider_id}/callback"
+    redirect_uri = f"{request['proto']}://{request.host}/{base_url}/login/oidc/{provider_id}/callback"
 
     try:
         token = await oidc_service.fetch_oidc_token(provider.config, response=str(request.url), redirect_uri=redirect_uri)
@@ -172,7 +175,7 @@ async def login_oidc_callback(request: web.Request):
         session["link_account_sub"] = oidc_sub
         session["link_account_username"] = oidc_username
 
-        raise web.HTTPFound("/login/link_account")
+        raise web.HTTPFound(f"{base_url}login/link_account")
 
     session["user_id"] = user.id
     session["username"] = user.username
@@ -180,7 +183,7 @@ async def login_oidc_callback(request: web.Request):
     session["auth_method"] = "oidc"
 
     logger.info(f"New login via {provider.name} for user '{user.username}' (ip: {request['real_ip']})")
-    raise web.HTTPFound("/dashboard")
+    raise web.HTTPFound(f"{base_url}dashboard")
 
 @auth_routes.get("/login/link_account")
 @auth_routes.post("/login/link_account")
@@ -190,6 +193,7 @@ async def link_account_template(request: web.Request):
     auth_config_service: AuthConfigService = get_di(request).auth_config_service
     oidc_service: OIDCService = get_di(request).oidc_service
     users_service: UsersService = get_di(request).users_service
+    base_url: str = get_di(request).base_url
     session = await get_session(request)
     data = {}
 
@@ -285,7 +289,7 @@ async def link_account_template(request: web.Request):
     session["auth_method"] = "oidc"
 
     logger.info(f"New user '{username}' registered via {provider.name} (ip: {request['real_ip']})")
-    raise web.HTTPFound("/dashboard")
+    raise web.HTTPFound(f"{base_url}dashboard")
 
 
 @auth_routes.get("/logout")
@@ -293,7 +297,8 @@ async def link_account_template(request: web.Request):
 async def logout(request: web.Request):
     oidc_service: OIDCService = get_di(request).oidc_service
     session = await get_session(request)
-    redirect_location = "/login"
+    base_url: str = get_di(request).base_url
+    redirect_location = f"{base_url}login"
 
     if session.get("auth_method") == "oidc":
         # Handle OIDC logout

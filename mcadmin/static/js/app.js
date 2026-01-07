@@ -1,13 +1,15 @@
 (function (window, Vue, luxon) {
 
     const { createApp } = Vue;
-    const { DateTime, Duration } = luxon;
+    const { DateTime } = luxon;
+
+    const app_config = JSON.parse(document.getElementById("app-data").textContent);
 
     window.McServerWebadmin = {};
 
     // app constants
-    McServerWebadmin["API_URL"] = "/api/";
-    McServerWebadmin["WS_URL"] = "/ws/";
+    McServerWebadmin["API_URL"] = `${app_config.base_url}api/`;
+    McServerWebadmin["WS_URL"] = `${app_config.base_url}ws/`;
     McServerWebadmin['STATS_POLLING_INTERVAL'] = 15000;
 
     McServerWebadmin['createApp'] = function (options) {

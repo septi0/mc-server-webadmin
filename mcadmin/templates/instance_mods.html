@@ -92,5 +92,5 @@
 
 {% block scripts %}
 {{ super() }}
-<script src="/static/js/pages/instance_mods.js?v={{ build_version }}"></script>
+<script src="{{ base_url }}static/js/pages/instance_mods.js?v={{ build_version }}"></script>
 {% endblock %}

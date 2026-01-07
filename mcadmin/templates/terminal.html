@@ -46,5 +46,5 @@
 {{ super() }}
 <script src="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/lib/xterm.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
-<script src="/static/js/pages/terminal.js?v={{ build_version }}"></script>
+<script src="{{ base_url }}static/js/pages/terminal.js?v={{ build_version }}"></script>
 {% endblock %}

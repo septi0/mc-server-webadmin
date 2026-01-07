@@ -44,6 +44,7 @@ class WebServerConfigSchema(BaseSettings):
     ip: IPvAnyAddress = ip_address("0.0.0.0")
     port: int = Field(default=8000, ge=0, le=65535)
     trusted_proxies: Optional[list[IPvAnyAddress | IPvAnyNetwork]] = []
+    base_url: str = Field(default="/")
 
     model_config = SettingsConfigDict(env_prefix="MCADMIN_WEB_")
 
